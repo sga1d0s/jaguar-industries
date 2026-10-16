@@ -23,7 +23,7 @@ Nombre elegido: **jaguar-industries**. El NAS comprobado tiene IP LAN `192.168.1
    - `JAGUAR_HTTP_PORT`: `3080` (comprobar que está libre).
 5. Desplegar. Deben aparecer `db` y `api` saludables. Abrir desde la LAN `http://192.168.1.96:3080/api/health`; debe devolver JSON con `status: ok`.
 
-PostgreSQL no publica puertos. El volumen esperado para este nombre de stack es `jaguar-industries_postgres_data`. Conservarlo al recrear el stack. Cambiar `POSTGRES_PASSWORD` no rota una contraseña de una base ya inicializada.
+PostgreSQL publica el puerto interno 5432 en la IP LAN indicada por `JAGUAR_BIND_IP`, puerto externo `JAGUAR_DB_PORT` (15433 por defecto), para pgAdmin. No añadir una ruta Cloudflare ni reenvío en el router para PostgreSQL. El volumen esperado para este nombre de stack es `jaguar-industries_postgres_data`. Conservarlo al recrear el stack. Cambiar `POSTGRES_PASSWORD` no rota una contraseña de una base ya inicializada.
 
 ## Crear el túnel después
 
@@ -42,3 +42,11 @@ El workflow preparado valida Compose, construye y prueba una imagen linux/amd64 
 Para CD automático falta elegir y probar el mecanismo concreto en Portainer CE 2.33.1: actualización desde Git disponible en la instalación o un runner privado que invoque su API. No se expone Portainer a Internet. La automatización tendrá que cambiar la referencia de imagen solo tras publicar correctamente; un simple sondeo del código no garantiza ese orden. No usar una etiqueta mutable `latest` como sustituto de este paso.
 
 Guía oficial: https://docs.portainer.io/user/docker/stacks/add
+
+## pgAdmin instalado en el Mac
+
+QNAP tiene `AllowTcpForwarding no`, por lo que el túnel SSH de pgAdmin no funciona con la configuración actual. Se ha preparado acceso directo por la IP LAN del NAS. El puerto 15432 pertenece a la base de Ibex; Jaguar usa 15433. Actualizar el stack existente desde `compose.portainer.yaml` conservando sus variables y volumen. Puede definirse `JAGUAR_DB_PORT=15433` explícitamente en Portainer.
+
+En pgAdmin registrar `Jaguar NAS`: host `192.168.1.96`, puerto `15433`, base de mantenimiento `jaguar`, usuario `jaguar_owner` y su `POSTGRES_PASSWORD` existente. Desactivar SSH Tunnel. Este usuario permite administración completa: su contraseña no es la del login móvil ni `APP_DATABASE_PASSWORD`. La API continúa usando el rol limitado y `db:5432`.
+
+La vinculación usa la IP LAN del NAS; no equivale a una regla de firewall por IP de cliente. No publicar ese puerto en el router ni en Cloudflare.

@@ -2,23 +2,45 @@
 
 Una app Expo / React Native para Android e iOS. Login real contra `https://paneljaguar.sgaldos.com/api`, sesión en Expo SecureStore, restauración validada con `/auth/me` y cierre de sesión en servidor. No incluye todavía equipos ni NFC.
 
-## Desarrollo
+## Desarrollo local (flujo habitual)
 
-Usar Node >=22.13 (en este Mac existe `~/.nvm/versions/node/v22.13.0`). Desde la raíz: `pnpm install` y `pnpm mobile`. Para probar con Expo Go, instalar una versión compatible con el SDK del proyecto (58); la disponibilidad en las tiendas puede ir por detrás del SDK. El APK preview es la vía prevista para la instalación independiente de Metro.
+Usar Node >=22.13 (`nvm use` desde la raíz), JDK 17 y Android SDK. En este Mac ya están instalados Java 17 y el SDK en `~/Library/Android/sdk`. La primera compilación descarga Gradle y los componentes que falten; las siguientes reutilizan su caché.
+
+Desde la raíz del repositorio:
+
+```bash
+pnpm install
+pnpm android:apk
+```
+
+El APK de pruebas independiente de Metro queda en:
+
+`apps/mobile/android/app/build/outputs/apk/release/app-release.apk`
+
+Se compila para Android ARM64. Para otro dispositivo, definir `JAGUAR_ANDROID_ARCHS` (por ejemplo `arm64-v8a,armeabi-v7a`). Se usa la firma de depuración generada por Expo: sirve para pruebas locales, no para publicar en tiendas. Si ya se instaló una versión firmada por EAS, las firmas pueden ser distintas; no se puede actualizar una con la otra. Desinstalar borra la sesión y otros datos locales.
+
+Para instalar mediante USB, activar la depuración USB y autorizar el Mac en el teléfono:
+
+```bash
+adb devices
+adb install -r apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+```
+
+También se puede copiar el APK al móvil y abrirlo allí.
+
+Para iterar con recarga inmediata, conectar el móvil y ejecutar `pnpm android`: genera/instala una compilación debug e inicia Metro. Los cambios JavaScript no suelen requerir otro APK. Al cambiar dependencias nativas o `app.json`, regenerar con `pnpm --filter @jaguar/mobile exec expo prebuild --platform android --no-install` y recompilar. No editar manualmente `android/` ni versionarlo; el script conserva el directorio generado entre compilaciones para permitir compilación incremental.
 
 Opcionalmente definir `EXPO_PUBLIC_API_URL` en un `.env` local. Es una URL pública, nunca incluir credenciales. La API debe tener desplegada la versión con autenticación y una cuenta creada previamente.
 
-## APK de prueba Android
+## Compilación cloud (alternativa)
 
-Desde `apps/mobile`:
+El proyecto EAS está vinculado a `@sgaldos/jaguar-industries`. Solo si se elige compilar en la nube, desde `apps/mobile`:
 
 ```bash
-pnpm dlx eas-cli login
-pnpm dlx eas-cli init
 pnpm dlx eas-cli build --platform android --profile preview
 ```
 
-`eas init` vincula la app con la cuenta Expo y añade su projectId. Revisar propietario e identificador antes de confirmar. EAS puede ofrecer crear la clave de firma Android; conservar el acceso a esa clave para futuras actualizaciones. El perfil preview genera un APK instalable mediante su enlace de descarga, sin depender de Metro. Al abrirlo, introducir una cuenta real creada en la API. No hay credenciales incorporadas.
+El perfil preview genera un APK instalable por enlace sin Metro. No es el flujo habitual acordado. No hay credenciales de usuario incorporadas en la app.
 
 ## iOS
 

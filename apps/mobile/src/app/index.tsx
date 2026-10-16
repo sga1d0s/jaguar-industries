@@ -5,8 +5,11 @@ import { StatusBar } from 'expo-status-bar';
 import * as SecureStore from 'expo-secure-store';
 
 type User = { id: string; name: string; email: string };
+// La URL se incorpora al compilar. Es pública; ninguna contraseña va en esta configuración.
 const API = process.env.EXPO_PUBLIC_API_URL || 'https://paneljaguar.sgaldos.com/api';
 const KEY = 'jaguar.session';
+// Punto común de comunicación con la API: envía JSON, añade el token cuando hace falta
+// y cancela tras quince segundos para que la pantalla no quede esperando indefinidamente.
 async function request(path: string, token?: string, body?: object) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
@@ -22,6 +25,8 @@ async function request(path: string, token?: string, body?: object) {
     return data;
   } finally { clearTimeout(timeout); }
 }
+// Recupera el token del almacenamiento protegido del teléfono y lo valida en el NAS.
+// Solo un 401 elimina la sesión; un fallo de red permite reintentar sin perder el token.
 async function loadSession(): Promise<{ user: User; token: string } | null> {
   const token = await SecureStore.getItemAsync(KEY);
   if (!token) return null;
@@ -33,6 +38,8 @@ async function loadSession(): Promise<{ user: User; token: string } | null> {
   }
 }
 export default function App() {
+  // Estado de la pantalla: campos del formulario, sesión actual y mensajes de carga/error.
+  // La contraseña permanece en memoria mientras se introduce; no se guarda en el teléfono.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [token, setToken] = useState<string | null>(null);
@@ -41,6 +48,7 @@ export default function App() {
   const [restoring, setRestoring] = useState(true);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(false);
+  // Reintento manual de recuperación cuando el teléfono no pudo contactar con la API.
   async function restore() {
     try {
       const session = await loadSession();
@@ -48,6 +56,8 @@ export default function App() {
     } catch { setError('No podemos recuperar la sesión. Comprueba tu conexión y vuelve a intentarlo.'); setRetry(true); }
     finally { setBusy(false); }
   }
+  // Al abrir la pantalla comprobamos si había una sesión guardada. La marca mounted
+  // evita actualizar una pantalla que ya se ha desmontado mientras llegaba la respuesta.
   useEffect(() => {
     let mounted = true;
     loadSession().then(session => {
@@ -57,6 +67,8 @@ export default function App() {
     }).finally(() => { if (mounted) setBusy(false); });
     return () => { mounted = false; };
   }, []);
+  // Tras autenticar, guarda únicamente el token en SecureStore y limpia la contraseña
+  // del formulario. Si falla el guardado, no mostramos una sesión iniciada.
   async function login() {
     setBusy(true); setError('');
     try {
@@ -66,6 +78,8 @@ export default function App() {
     } catch (e: any) { setError(e.status ? e.message : 'No se pudo conectar. Comprueba tu conexión y vuelve a intentarlo.'); }
     finally { setBusy(false); }
   }
+  // Primero revoca la sesión en el servidor y después borra la copia local. Si no hay
+  // conexión avisamos y conservamos la sesión para poder volver a intentar cerrarla.
   async function logout() {
     setBusy(true); setError('');
     try {
@@ -75,6 +89,8 @@ export default function App() {
     } catch { Alert.alert('No se pudo cerrar la sesión', 'Comprueba tu conexión y vuelve a intentarlo.'); }
     finally { setBusy(false); }
   }
+  // La misma pantalla muestra tres estados: recuperar sesión, bienvenida o formulario.
+  // SafeAreaView respeta las zonas del sistema; el contenido se desplaza al abrir el teclado.
   return <SafeAreaView style={styles.safe}><StatusBar style="light" />
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
@@ -92,6 +108,7 @@ export default function App() {
     </KeyboardAvoidingView>
   </SafeAreaView>;
 }
+// Presentación compartida por Android e iOS: colores, espaciado y estados visuales.
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#13212c' }, page: { flexGrow: 1, justifyContent: 'center', padding: 24, maxWidth: 520, width: '100%', alignSelf: 'center' },
   brand: { color: 'white', fontSize: 42, fontWeight: '900', letterSpacing: 4 }, subtitle: { color: '#a9b7c2', fontSize: 10, letterSpacing: 1.4, marginTop: 6, marginBottom: 32 },

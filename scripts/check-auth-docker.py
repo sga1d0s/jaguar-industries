@@ -1,5 +1,6 @@
 """Prueba aislada en el contexto Docker actual. No publica puertos ni toca el stack real."""
 import subprocess, secrets, time, os
+# Nombres únicos y contraseñas aleatorias para aislar la prueba del stack real.
 suffix=secrets.token_hex(4)
 network='jaguar-auth-test-'+suffix
 db=network+'-db'
@@ -14,6 +15,7 @@ try:
     for _ in range(40):
         try: run('exec',db,'pg_isready','-U','jaguar_owner','-d','jaguar'); break
         except subprocess.CalledProcessError: time.sleep(1)
+# Las tareas de migración usan el propietario; el servidor se prueba con el rol limitado.
     common=['--network',network,'-e','PGHOST=db','-e','PGDATABASE=jaguar']
     admin={ 'PGPASSWORD':owner, 'APP_DATABASE_PASSWORD':app }
     migration=['run','--rm',*common,'-e','PGUSER=jaguar_owner','-e','PGPASSWORD','-e','APP_DATABASE_PASSWORD','jaguar-api:login-check','node','scripts/migrate.mjs']
@@ -43,6 +45,7 @@ try:
     await pool.end(); console.log('OK: migración repetible, login, sesión, logout, límite de intentos y rol limitado');
     """
     print(run('exec',api,'node','--input-type=module','-e',code).strip())
+# Esta limpieza se ejecuta también si falla una comprobación; la base es temporal.
 finally:
     for name in [api,db]:
         subprocess.run(['docker','rm','-f',name],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)

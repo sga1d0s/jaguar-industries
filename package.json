@@ -4,7 +4,9 @@
   "packageManager": "pnpm@10.17.0",
   "scripts": {
     "mobile": "pnpm --filter @jaguar/mobile start",
-    "test": "pnpm --filter @jaguar/api test"
+    "test": "pnpm --filter @jaguar/api test",
+    "android:apk": "sh scripts/build-android-local.sh",
+    "android": "pnpm --filter @jaguar/mobile android"
   },
   "engines": {
     "node": ">=22.13.0"
