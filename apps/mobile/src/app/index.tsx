@@ -29,7 +29,7 @@ export default function App() {
   return <SafeAreaView style={styles.safe}><StatusBar style="light" />
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
-        <Text style={styles.brand}>-JAGUAR-</Text><Text style={styles.subtitle}>INDUSTRIAS · EQUIPOS DE ELEVACIÓN</Text>
+        <Text style={styles.brand}>JAGUAR</Text><Text style={styles.subtitle}>INDUSTRIAS · EQUIPOS DE ELEVACIÓN</Text>
         <View style={styles.card}>
           {!auth.ready ? <><Text style={styles.title}>Tu espacio Jaguar</Text><Text style={styles.copy}>Recuperando tu sesión</Text>{(busy || !auth.restoreError) && <ActivityIndicator color="#d34925" />}{auth.restoreError && <Pressable style={styles.button} onPress={restoreSession}><Text style={styles.buttonText}>Reintentar</Text></Pressable>}</>
           : <><Text style={styles.title}>Inicia sesión</Text><Text style={styles.copy}>Accede a tu cuenta de Jaguar.</Text>
