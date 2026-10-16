@@ -50,3 +50,5 @@ QNAP tiene `AllowTcpForwarding no`, por lo que el túnel SSH de pgAdmin no funci
 En pgAdmin registrar `Jaguar NAS`: host `192.168.1.96`, puerto `15433`, base de mantenimiento `jaguar`, usuario `jaguar_owner` y su `POSTGRES_PASSWORD` existente. Desactivar SSH Tunnel. Este usuario permite administración completa: su contraseña no es la del login móvil ni `APP_DATABASE_PASSWORD`. La API continúa usando el rol limitado y `db:5432`.
 
 La vinculación usa la IP LAN del NAS; no equivale a una regla de firewall por IP de cliente. No publicar ese puerto en el router ni en Cloudflare.
+
+La base pertenece también a `db_admin`, una red bridge normal exclusiva de PostgreSQL. Es necesaria para que Docker active la publicación LAN: conectada únicamente a `backend` (`internal: true`), el QNAP conservaba el mapeo solicitado pero no lo hacía efectivo. La API sigue comunicándose con db por `backend`.

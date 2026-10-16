@@ -22,6 +22,7 @@ services:
       - '${JAGUAR_BIND_IP:?Define la IP LAN del NAS}:${JAGUAR_DB_PORT:-15433}:5432'
     networks:
       - backend
+      - db_admin
     healthcheck:
       test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
       interval: 10s
@@ -60,6 +61,10 @@ networks:
   backend:
     internal: true
   edge:
+  # Docker no activa puertos publicados cuando el contenedor solo tiene redes internal.
+  # Esta red adicional habilita el acceso LAN; solo PostgreSQL se conecta a ella.
+  db_admin:
+    driver: bridge
 
 volumes:
   postgres_data:

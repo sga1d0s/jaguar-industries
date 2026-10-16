@@ -120,3 +120,9 @@ El usuario pide comentarios en español que expliquen qué hace cada bloque. Se 
 ## Acceso pgAdmin desde el Mac — 17 de octubre de 2026
 
 El usuario autorizó publicar PostgreSQL en la IP LAN del NAS para conectar su pgAdmin instalado. Se comprobó por SSH que QNAP tiene `AllowTcpForwarding no`, causa del fallo del túnel. El puerto propuesto 15432 ya lo usa `ibex-postgres-1`; se elige 15433, libre en la comprobación. Se añade al servicio db de `infra/compose.portainer.yaml` el mapeo `${JAGUAR_BIND_IP}:${JAGUAR_DB_PORT:-15433}:5432`, con comentarios y variable de ejemplo. No se cambia el volumen ni el puerto interno utilizado por la API. No se ha actualizado todavía el stack: pendiente de aplicar desde Portainer y verificar la conexión LAN. Los apartados anteriores que indican que PostgreSQL no publica puertos describen el estado previo a este cambio.
+
+### Diagnóstico definitivo del puerto pgAdmin
+
+El commit `0bf0936` estaba en GitHub y el contenedor ya tenía `HostConfig.PortBindings` para `192.168.1.96:15433`, pero `NetworkSettings.Ports` seguía vacío. No era un fallo de comentarios YAML ni de actualización del repositorio: Docker 27 del QNAP no activaba la publicación porque db solo pertenecía a `backend` con `internal: true`. El diagnóstico anterior de que el cambio no se había aplicado fue incompleto.
+
+Corrección: conectar db además a una red bridge `db_admin` normal, exclusiva de PostgreSQL; mantener `backend` interna y el puerto vinculado a la IP LAN. Validación: Compose correcto y prueba con PostgreSQL temporal, dos redes equivalentes y puerto LAN 15434; PostgreSQL respondió al protocolo desde el Mac. Contenedor y redes temporales eliminados. Pendiente aplicar este Compose al stack real y comprobar 15433.
