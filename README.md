@@ -1,6 +1,6 @@
 # Jaguar Industries
 
-Base inicial del monorepo; el producto todavía no está implementado. Hay un servidor Node mínimo para comprobar el despliegue Docker.
+Monorepo de Jaguar Industries. Primera base de autenticación con API Node/PostgreSQL y app Expo para Android e iOS; el producto de gestión de equipos sigue pendiente.
 
 ## Producto
 
@@ -31,3 +31,7 @@ Faltan por ajustar arquitectura del NAS, proxy HTTPS, dominio, almacenamiento y 
 ## Destino de despliegue
 
 QNAP TS-251D (Intel x86-64), con QTS, Docker y Portainer. Dominio previsto: `paneljaguar.sgaldos.com`. Se propone Cloudflare Tunnel; confirmar si ya existe un conector compartido antes de crear otro. Ver `docs/deployment.md`. RAM instalada pendiente de confirmar.
+
+## App y autenticación
+
+Ver [app móvil](apps/mobile/README.md) y [API de autenticación](apps/api/README.md). El login requiere desplegar la nueva imagen, aplicar el esquema y crear una cuenta. La pantalla del móvil no usa credenciales de demostración.

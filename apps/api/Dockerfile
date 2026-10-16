@@ -1,7 +1,10 @@
 FROM node:24-bookworm-slim
 ENV NODE_ENV=production PORT=3000
 WORKDIR /app
-COPY --chown=node:node server.mjs ./server.mjs
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
+COPY --chown=node:node *.mjs ./
+COPY --chown=node:node scripts ./scripts
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \

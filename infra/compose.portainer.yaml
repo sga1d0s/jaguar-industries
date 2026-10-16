@@ -33,6 +33,10 @@ services:
     environment:
       NODE_ENV: production
       PORT: '3000'
+      PGHOST: db
+      PGDATABASE: jaguar
+      PGUSER: jaguar_app
+      PGPASSWORD: ${APP_DATABASE_PASSWORD:?Define APP_DATABASE_PASSWORD para el rol limitado}
     depends_on:
       db:
         condition: service_healthy

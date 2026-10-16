@@ -1,0 +1,1 @@
+{"name":"@jaguar/api","private":true,"type":"module","scripts":{"start":"node server.mjs","test":"node --test","migrate":"node scripts/migrate.mjs","create-user":"node scripts/create-user.mjs"},"dependencies":{"pg":"^8.16.3"}}

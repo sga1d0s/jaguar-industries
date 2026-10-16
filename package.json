@@ -1,0 +1,12 @@
+{
+  "name": "jaguar-industries",
+  "private": true,
+  "packageManager": "pnpm@10.17.0",
+  "scripts": {
+    "mobile": "pnpm --filter @jaguar/mobile start",
+    "test": "pnpm --filter @jaguar/api test"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  }
+}
