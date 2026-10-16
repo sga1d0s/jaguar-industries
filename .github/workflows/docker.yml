@@ -1,10 +1,10 @@
 name: API Docker
 on:
   pull_request:
-    paths: ['apps/api/**', 'infra/**', 'scripts/check-auth-docker.py', '.github/workflows/docker.yml']
+    paths: ['apps/api/**', 'docs/referencias/productos/**', '.dockerignore', 'infra/**', 'scripts/check-auth-docker.py', '.github/workflows/docker.yml']
   push:
     branches: [main]
-    paths: ['apps/api/**', 'infra/**', 'scripts/check-auth-docker.py', '.github/workflows/docker.yml']
+    paths: ['apps/api/**', 'docs/referencias/productos/**', '.dockerignore', 'infra/**', 'scripts/check-auth-docker.py', '.github/workflows/docker.yml']
   workflow_dispatch:
 
 permissions:
@@ -35,7 +35,8 @@ jobs:
         run: echo "image=ghcr.io/${GITHUB_REPOSITORY,,}-api:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
       - uses: docker/build-push-action@v6
         with:
-          context: apps/api
+          context: .
+          file: apps/api/Dockerfile
           platforms: linux/amd64
           load: true
           tags: jaguar-api:ci
@@ -63,7 +64,8 @@ jobs:
       - uses: docker/build-push-action@v6
         if: github.event_name != 'pull_request'
         with:
-          context: apps/api
+          context: .
+          file: apps/api/Dockerfile
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.image }}

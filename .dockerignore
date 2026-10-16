@@ -1,0 +1,27 @@
+# Lista cerrada: el contexto Docker nunca incluye credenciales, copias, móvil ni .git.
+*
+!apps/
+!apps/api/
+!apps/api/*.mjs
+!apps/api/package.json
+!apps/api/package-lock.json
+!apps/api/Dockerfile
+!apps/api/scripts/
+!apps/api/scripts/*.mjs
+!docs/
+!docs/referencias/
+!docs/referencias/productos/
+!docs/referencias/productos/**
+
+# Las excepciones de directorio no deben arrastrar dependencias ni artefactos locales.
+apps/mobile
+**/node_modules
+**/android
+**/ios
+**/dist
+**/.git
+**/.env
+**/.env.*
+**/*.keystore
+**/*.jks
+**/__pycache__

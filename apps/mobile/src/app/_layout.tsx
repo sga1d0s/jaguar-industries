@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
-// Contenedor de navegación: las pantallas de src/app se registran automáticamente.
-// Ocultamos la cabecera porque la pantalla de acceso presenta su propio contenido.
+import { AuthProvider } from '../lib/session';
+// La sesión se conserva por encima de todas las pantallas, incluido el formulario de acceso.
 export default function RootLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return <AuthProvider><Stack screenOptions={{headerShown:false}} /></AuthProvider>;
 }

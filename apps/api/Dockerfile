@@ -1,10 +1,12 @@
 FROM node:24-bookworm-slim
-ENV NODE_ENV=production PORT=3000
+ENV NODE_ENV=production PORT=3000 DOCUMENTS_ROOT=/app/product-documents
 WORKDIR /app
-COPY package.json package-lock.json ./
+COPY apps/api/package.json apps/api/package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
-COPY --chown=node:node *.mjs ./
-COPY --chown=node:node scripts ./scripts
+COPY --chown=node:node apps/api/*.mjs ./
+COPY --chown=node:node apps/api/scripts ./scripts
+# Solo PDF de referencia: el acceso HTTP siempre pasa por la autorización de la API.
+COPY --chown=node:node docs/referencias/productos ./product-documents
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \

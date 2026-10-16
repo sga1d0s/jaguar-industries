@@ -18,7 +18,7 @@ Una app React Native + Expo para iOS y Android, con usuarios internos y clientes
 
 ## Estado
 
-Incluye arquitectura, PostgreSQL, un servidor Node de infraestructura (`/api/health`), Compose para Portainer y un workflow de construcción/publicación de imagen. No incluye todavía móvil, web, API de negocio, autenticación ni sincronización. Ver [primer despliegue Docker](infra/README.md). No desplegar como producto terminado.
+Incluye PostgreSQL, API Node con autenticación y consulta de equipos/documentos por cliente, app Expo con login, Mis equipos y ficha, Compose para Portainer y workflows de comprobación/publicación. No incluye todavía panel web, NFC ni sincronización offline. Ver [primer despliegue Docker](infra/README.md). No desplegar como producto terminado.
 
 ## PostgreSQL en Portainer
 

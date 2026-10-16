@@ -1,6 +1,6 @@
 # App móvil Jaguar
 
-Una app Expo / React Native para Android e iOS. Login real contra `https://paneljaguar.sgaldos.com/api`, sesión en Expo SecureStore, restauración validada con `/auth/me` y cierre de sesión en servidor. No incluye todavía equipos ni NFC.
+Una app Expo / React Native para Android e iOS. Login real contra `https://paneljaguar.sgaldos.com/api`, sesión en Expo SecureStore, restauración validada con `/auth/me` y cierre de sesión en servidor. Incluye Mis equipos, ficha de unidad y apertura online de PDF autorizados. NFC y consulta offline siguen pendientes.
 
 ## Desarrollo local (flujo habitual)
 
@@ -53,3 +53,11 @@ Código compartido y perfil production preparados. No se ha generado ni firmado 
 3. Cerrar completamente la app, abrirla y comprobar que recupera la sesión.
 4. Cerrar sesión y comprobar que vuelve al login.
 5. Probar sin conexión: debe informar del fallo, sin simular una sesión validada.
+
+## Primer recorrido de equipos
+
+Tras entrar se abre Mis equipos. La lista incluye foto del modelo, referencia, número de serie y venta/alquiler. Las unidades ficticias se identifican con DEMO. La ficha muestra características de la referencia, estado de vinculación NFC y ficha técnica, manual y declaración CE del modelo. No se presenta una inspección o certificado individual como existente.
+
+Los PDF se descargan con la cabecera de sesión a una caché temporal separada por cuenta y se abren con el visor nativo. Hace falta un visor PDF instalado en Android. La caché se limpia al cerrar o invalidar la sesión; no hay todavía biblioteca offline. No se ponen tokens en URL ni se abren enlaces públicos que eviten los permisos. Una sesión caducada vuelve al login; un fallo de red permite reintentar.
+
+La API necesita la migración y la nueva imagen descritas en `apps/api/README.md`. Para preparar el APK tras añadir una dependencia nativa, ejecutar Expo prebuild y luego `pnpm android:apk`. El APK local sigue usando firma de depuración, que puede no coincidir con el APK EAS instalado previamente: no desinstalar la aplicación existente sin decidir antes si se quieren conservar sus datos.
