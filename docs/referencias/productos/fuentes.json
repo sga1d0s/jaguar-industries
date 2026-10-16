@@ -1,0 +1,56 @@
+[
+  {
+    "producto": "serie-630",
+    "tipo": "ficha",
+    "archivo": "serie-630/ficha.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/fichas_2025/page_020.pdf",
+    "fecha_descarga": "2026-10-16",
+    "bytes": 336783,
+    "sha256": "22444357b8c5f06b4d82c4f463440e9a23cdcacf9f788557b4d908c1b3b42a6b"
+  },
+  {
+    "producto": "serie-630",
+    "tipo": "manual",
+    "archivo": "serie-630/manual.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/APARATOS_MANUALES/poleas_manuales/Manual_Polipasto_manual_630,650.pdf",
+    "fecha_descarga": "2026-10-16",
+    "bytes": 10015081,
+    "sha256": "501eb97ff91784f4552e402db941530cc69e37d1c57219e3b20e0a9673fc558c"
+  },
+  {
+    "producto": "serie-630",
+    "tipo": "declaracion-ce",
+    "archivo": "serie-630/declaracion-ce.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/APARATOS_MANUALES/poleas_manuales/declaracion_ce_poleas_630.pdf",
+    "fecha_descarga": "2026-10-16",
+    "bytes": 229780,
+    "sha256": "a746eed20ac3de3166d12cd3314f110f2abc6fd5e6b8993142f346a52d64167e"
+  },
+  {
+    "producto": "modelo-bt",
+    "tipo": "ficha",
+    "archivo": "modelo-bt/ficha.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/fichas_2025/page_050.pdf",
+    "fecha_descarga": "2026-10-16",
+    "bytes": 203377,
+    "sha256": "07b4b23851766a2c2d9f8f3b71c3953c6ca6e4b39285cbc761e3e3f14a39362f"
+  },
+  {
+    "producto": "modelo-bt",
+    "tipo": "manual",
+    "archivo": "modelo-bt/manual.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/GARRAS_DE_ELEVACION/GARRAS_FIJAS/Manual_Garra_BT-B-D-R-DH.pdf",
+    "fecha_descarga": "2026-10-16",
+    "bytes": 3401954,
+    "sha256": "6d910c086c4391b913e7c53341ca255d35c4f7dd346d01506f0a3702faa2686c"
+  },
+  {
+    "producto": "modelo-bt",
+    "tipo": "declaracion-ce",
+    "archivo": "modelo-bt/declaracion-ce.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/GARRAS_DE_ELEVACION/GARRAS_ARTICULADAS/declaracion_ce_garras_b-bt-btl.pdf",
+    "fecha_descarga": "2026-10-16",
+    "bytes": 237220,
+    "sha256": "9faf5c3f1fa9c33eb3460a2420a48b49065b021c10bca74a3907f7c0e67bb8d4"
+  }
+]

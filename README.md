@@ -1,6 +1,6 @@
 # Jaguar Industries
 
-Base inicial del monorepo; la aplicación todavía no está implementada.
+Base inicial del monorepo; el producto todavía no está implementado. Hay un servidor Node mínimo para comprobar el despliegue Docker.
 
 ## Producto
 
@@ -18,7 +18,7 @@ Una app React Native + Expo para iOS y Android, con usuarios internos y clientes
 
 ## Estado
 
-Incluye arquitectura y un Compose inicial para PostgreSQL. No incluye todavía móvil, web, API, autenticación ni sincronización. No desplegar como producto terminado.
+Incluye arquitectura, PostgreSQL, un servidor Node de infraestructura (`/api/health`), Compose para Portainer y un workflow de construcción/publicación de imagen. No incluye todavía móvil, web, API de negocio, autenticación ni sincronización. Ver [primer despliegue Docker](infra/README.md). No desplegar como producto terminado.
 
 ## PostgreSQL en Portainer
 

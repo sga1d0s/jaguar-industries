@@ -1,0 +1,15 @@
+# Archivo adicional: usar junto con compose.portainer.yaml al crear el tunel.
+services:
+  cloudflared:
+    image: ${CLOUDFLARED_IMAGE:?Define una version fija de cloudflare/cloudflared}
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?Define el token del tunel en Portainer}
+    networks:
+      - edge
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'

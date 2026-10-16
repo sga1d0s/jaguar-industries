@@ -1,0 +1,57 @@
+name: jaguar-industries
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '3'
+
+services:
+  db:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: jaguar
+      POSTGRES_USER: jaguar_owner
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en Portainer}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    logging: *logging
+
+  api:
+    image: ${API_IMAGE:?Define API_IMAGE con la imagen y su version}
+    restart: unless-stopped
+    init: true
+    environment:
+      NODE_ENV: production
+      PORT: '3000'
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend
+      - edge
+    ports:
+      - '${JAGUAR_BIND_IP:?Define la IP LAN del NAS}:${JAGUAR_HTTP_PORT:-3080}:3000'
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+
+networks:
+  backend:
+    internal: true
+  edge:
+
+volumes:
+  postgres_data:
