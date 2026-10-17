@@ -42,7 +42,9 @@ export async function panelRoute(req,res,reply) {
         (SELECT count(*)::int FROM equipment WHERE NOT is_demo) AS units,
         (SELECT count(*)::int FROM equipment) AS all_units,
         (SELECT count(*)::int FROM equipment_assignments a JOIN equipment e ON e.id=a.equipment_id
-          WHERE a.kind='rental' AND a.starts_at<=now() AND (a.ends_at IS NULL OR a.ends_at>now()) AND NOT e.is_demo) AS rentals`);
+          JOIN organizations customer ON customer.id=a.client_organization_id
+          WHERE a.kind='rental' AND a.starts_at<=now() AND (a.ends_at IS NULL OR a.ends_at>now())
+          AND NOT e.is_demo AND NOT customer.is_demo) AS rentals`);
       reply(res,200,rows[0]); return true;
     }
     const lists={
@@ -120,7 +122,9 @@ export async function panelRoute(req,res,reply) {
           AND (ends_at IS NULL OR ends_at>clock_timestamp())`,[unit.id]);
         if (active.rowCount) throw new InputError('La unidad ya tiene una asignación. Finaliza primero el alquiler vigente.');
         if (!['sale','rental'].includes(input.kind)) throw new InputError('Selecciona venta o alquiler.');
-        const customer=(await client.query("SELECT id FROM organizations WHERE id=$1 AND kind='client' AND NOT is_demo",[id(input.clientId)])).rows[0];
+        // El operador puede elegir también un cliente DEMO para probar el recorrido.
+        // La membresía sigue determinando quién podrá consultar la unidad en la app.
+        const customer=(await client.query("SELECT id FROM organizations WHERE id=$1 AND kind='client'",[id(input.clientId)])).rows[0];
         if (!customer) throw new InputError('El cliente no existe.');
         result=(await client.query('INSERT INTO equipment_assignments(equipment_id,client_organization_id,kind,starts_at) VALUES($1,$2,$3,clock_timestamp()) RETURNING id',
           [unit.id,customer.id,input.kind])).rows[0];

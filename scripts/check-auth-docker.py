@@ -118,6 +118,18 @@ try:
     const returns=await Promise.all([call('assignments/'+rental.id+'/end',{}),call('assignments/'+rental.id+'/end',{})]);
     assert.deepEqual(returns.map(r=>r.status).sort(),[201,400]);
     assert.equal((await call('assignments/'+rental.id+'/end',{})).status,400);
+    // El cliente DEMO puede recibir un alquiler de prueba. Su miembro obtiene acceso,
+    // sin contabilizar ese alquiler como actividad real; la devolución revoca el acceso.
+    const {pool:demoPool}=await import('./db.mjs');
+    const demoClient=(await demoPool.query(`SELECT m.organization_id FROM memberships m JOIN users u ON u.id=m.user_id
+      JOIN organizations o ON o.id=m.organization_id WHERE u.email='test@example.com' AND o.is_demo`)).rows[0].organization_id;
+    const beforeDemo=await (await call('summary')).json();
+    const demoRental=await create('assignments',{equipmentId:second.id,clientId:demoClient,kind:'rental'});
+    assert.equal((await (await call('summary')).json()).rentals,beforeDemo.rentals);
+    const ownEquipment=async()=> (await (await fetch(base+'/equipment',{headers:{authorization:'Bearer '+token}})).json()).items;
+    assert.equal((await ownEquipment()).some(e=>e.id===second.id),true);
+    await create('assignments/'+demoRental.id+'/end',{});
+    assert.equal((await ownEquipment()).some(e=>e.id===second.id),false);
     const sale=await create('assignments',{equipmentId:second.id,clientId:client.id,kind:'sale'});
     assert.equal((await call('assignments/'+sale.id+'/end',{})).status,400);
     assert.equal((await call('assignments',{equipmentId:second.id,clientId:client.id,kind:'rental'})).status,400);
@@ -130,7 +142,7 @@ try:
     const user=(await pool.query("SELECT id FROM users WHERE email='other@example.com'")).rows[0];
     await assert.rejects(pool.query('INSERT INTO panel_operators(user_id) VALUES($1)',[user.id]));
     await assert.rejects(pool.query('DELETE FROM panel_audit'));
-    assert.equal((await pool.query('SELECT count(*)::int AS n FROM panel_audit')).rows[0].n,9);
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM panel_audit')).rows[0].n,11);
     await pool.end(); console.log('OK: panel aislado, altas, validación, auditoría, asignación concurrente, devolución y propiedad de venta');
     """
     print(run('exec',api,'node','--input-type=module','-e',panel_code).strip())

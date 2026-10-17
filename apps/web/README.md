@@ -50,3 +50,5 @@ La prueba crea y elimina su PostgreSQL y red temporales. Comprueba autorización
 ## Ampliación del catálogo oficial
 
 Se han preparado seis familias adicionales con 55 referencias, fotografías, ficha, manual y declaración CE. Para desplegar esta ampliación, usar `API_IMAGE=jaguar-api:catalog-check` y `WEB_IMAGE=jaguar-web:catalog-check` (imágenes construidas en el NAS), actualizar sin re-pull y ejecutar `python3 scripts/setup-catalog-nas.py`. Después recargar Catálogo. No hay cambios en Compose, Cloudflare, permisos o APK. Ver [fuentes y proceso de carga](../../docs/referencias/productos/README.md).
+
+Los clientes DEMO también pueden seleccionarse al asignar una unidad gestionable, identificados como DEMO tanto en el selector como en el inventario. Los alquileres a esos clientes no se cuentan en el indicador interno de alquileres reales. El acceso en la app continúa dependiendo de la membresía y la asignación vigente. El nombre o prefijo de serie `DEMO-` por sí solo no cambia el campo de demostración de la unidad; las unidades inicialmente cargadas con `is_demo=true` conservan su condición de consulta.
