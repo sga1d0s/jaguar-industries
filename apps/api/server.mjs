@@ -26,6 +26,8 @@ const server = createServer(async (req, res) => {
   try {
     // health comprueba HTTP; ready comprueba además el acceso al esquema de PostgreSQL.
     if (req.method === 'GET' && req.url === '/api/health') return reply(res, 200, { status: 'ok', service: 'jaguar-api' });
+    // Permite comprobar qué commit sirve la API sin revelar configuración o credenciales.
+    if (req.method === 'GET' && req.url === '/api/version') return reply(res, 200, { revision: process.env.BUILD_REVISION || 'local' });
     if (req.method === 'GET' && req.url === '/api/ready') {
       await pool.query('SELECT 1 FROM users LIMIT 1');
       return reply(res, 200, { status: 'ok' });

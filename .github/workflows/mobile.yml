@@ -3,7 +3,7 @@ on:
   pull_request:
     paths: ['apps/mobile/**', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.github/workflows/mobile.yml']
   push:
-    branches: [main]
+    branches: [dev, main]
     paths: ['apps/mobile/**', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.github/workflows/mobile.yml']
   workflow_dispatch:
 permissions:

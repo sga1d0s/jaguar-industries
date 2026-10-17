@@ -26,7 +26,7 @@ El frontal no accede directamente a PostgreSQL. Las cuentas de cliente no tienen
 
 La red `backend` es interna. PostgreSQL tiene además `db_admin`, necesaria para activar la publicación LAN en este Docker; el frontal solo pertenece a `edge`. No se publica PostgreSQL, QTS ni Portainer mediante el túnel.
 
-El workflow `Jaguar Docker` valida Compose, prueba API y frontal con una base temporal y publica ambas imágenes con etiquetas inmutables por commit. No cambia automáticamente las variables del stack. La primera prueba puede usar las imágenes locales `jaguar-api:panel-check` y `jaguar-web:panel-check` sin volver a descargarlas.
+El workflow `Jaguar Docker` valida y publica ambas imágenes y prepara la rama `deploy/production` con el Compose fijado por commit y digest. Tras la primera configuración de Portainer y la variable `PORTAINER_DEPLOY_ENABLED=true`, llama al webhook al terminar y verifica las versiones servidas de API y web. Seguir [la activación de CI/CD](../infra/CI-CD.md). Las imágenes locales anteriores fueron el procedimiento de prueba manual.
 
 Las migraciones se ejecutan explícitamente con el propietario; el servidor usa `jaguar_app`. Cambiar `POSTGRES_PASSWORD` en Portainer no rota la contraseña de una base inicializada. Conservar copias fuera del NAS y verificar restauraciones antes de dar el servicio por listo para producción.
 

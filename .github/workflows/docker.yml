@@ -1,23 +1,36 @@
 name: Jaguar Docker
 on:
   pull_request:
-    paths: ['apps/api/**', 'apps/web/**', 'docs/referencias/productos/**', '.dockerignore', 'infra/**', 'scripts/check-auth-docker.py', '.github/workflows/docker.yml']
+    paths: ['apps/api/**', 'apps/web/**', 'docs/referencias/productos/**', '.dockerignore', 'infra/**', 'scripts/*release*', 'scripts/*portainer*', 'scripts/*deployment*', 'scripts/check-auth-docker.py', '.github/workflows/docker.yml']
   push:
-    branches: [main]
-    paths: ['apps/api/**', 'apps/web/**', 'docs/referencias/productos/**', '.dockerignore', 'infra/**', 'scripts/check-auth-docker.py', '.github/workflows/docker.yml']
+    branches: [dev, main]
+    # Todo avance de main genera una ejecución: una edición solo de documentación
+    # no debe dejar sin reemplazo una publicación anterior descartada por obsoleta.
   workflow_dispatch:
 
 permissions:
   contents: read
 
+# Mantiene la ejecución en curso; las pendientes se agrupan sin desplegar en paralelo.
+concurrency:
+  group: jaguar-docker-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   image:
     runs-on: ubuntu-latest
+    outputs:
+      api_image: ${{ steps.meta.outputs.image }}
+      web_image: ${{ steps.meta.outputs.web }}
+      api_digest: ${{ steps.publish_api.outputs.digest }}
+      web_digest: ${{ steps.publish_web.outputs.digest }}
     permissions:
       contents: read
       packages: write
     steps:
       - uses: actions/checkout@v4
+      - name: Verify release automation
+        run: python3 -m unittest discover -s scripts -p 'test_release.py' -v
       - name: Validate Compose
         env:
           POSTGRES_PASSWORD: ci-placeholder
@@ -43,6 +56,7 @@ jobs:
           platforms: linux/amd64
           load: true
           tags: jaguar-api:ci
+          build-args: BUILD_REVISION=${{ github.sha }}
       - name: Verify web JavaScript
         run: |
           node --check apps/web/public/app.js
@@ -53,6 +67,7 @@ jobs:
           platforms: linux/amd64
           load: true
           tags: jaguar-web:ci
+          build-args: BUILD_REVISION=${{ github.sha }}
       - name: Verify authentication
         run: |
           docker run --rm jaguar-api:ci node --test auth.test.mjs
@@ -64,28 +79,79 @@ jobs:
           trap 'docker logs jaguar-api-ci; docker rm -f jaguar-api-ci' EXIT
           for attempt in $(seq 1 20); do
             if curl --fail http://127.0.0.1:3000/api/health; then break; fi
+            echo "Esperando API ($attempt/20)"
             sleep 1
           done
           curl --fail http://127.0.0.1:3000/api/health
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/unknown)" = 404
       - uses: docker/login-action@v3
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/build-push-action@v6
-        if: github.event_name != 'pull_request'
+        id: publish_api
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         with:
           context: .
           file: apps/api/Dockerfile
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.image }}
+          build-args: BUILD_REVISION=${{ github.sha }}
       - uses: docker/build-push-action@v6
-        if: github.event_name != 'pull_request'
+        id: publish_web
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         with:
           context: apps/web
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.web }}
+          build-args: BUILD_REVISION=${{ github.sha }}
+
+  deploy:
+    # Las PR y las ejecuciones manuales sobre otras ramas nunca despliegan.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: image
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - name: Check webhook configuration
+        env:
+          PORTAINER_STACK_WEBHOOK: ${{ secrets.PORTAINER_STACK_WEBHOOK }}
+        run: |
+          if [ -z "$PORTAINER_STACK_WEBHOOK" ]; then
+            echo '::error::Configura el secreto PORTAINER_STACK_WEBHOOK antes de publicar el despliegue.'
+            exit 1
+          fi
+      - name: Publish production Compose
+        id: release
+        env:
+          SOURCE_REVISION: ${{ github.sha }}
+          RELEASE_API: ${{ needs.image.outputs.api_image }}@${{ needs.image.outputs.api_digest }}
+          RELEASE_WEB: ${{ needs.image.outputs.web_image }}@${{ needs.image.outputs.web_digest }}
+        run: |
+          python3 scripts/publish-release.py --revision "$SOURCE_REVISION" --api-image "$RELEASE_API" --web-image "$RELEASE_WEB"
+      - name: Notify Portainer after publishing both images and Compose
+        if: steps.release.outputs.published == 'true' && vars.PORTAINER_DEPLOY_ENABLED == 'true'
+        env:
+          PORTAINER_STACK_WEBHOOK: ${{ secrets.PORTAINER_STACK_WEBHOOK }}
+        run: python3 scripts/notify-portainer.py
+      - name: Verify deployed commit
+        if: steps.release.outputs.published == 'true' && vars.PORTAINER_DEPLOY_ENABLED == 'true'
+        env:
+          SOURCE_REVISION: ${{ github.sha }}
+          VERIFY_URL: ${{ vars.DEPLOY_VERIFY_URL || 'https://paneljaguar.sgaldos.com' }}
+        run: python3 scripts/verify-deployment.py --url "$VERIFY_URL" --revision "$SOURCE_REVISION"
+      - name: Explain first activation
+        if: steps.release.outputs.published == 'true' && vars.PORTAINER_DEPLOY_ENABLED != 'true'
+        run: |
+          echo '::notice::Rama deploy/production preparada. Configura esa referencia en Portainer y después la variable de Actions PORTAINER_DEPLOY_ENABLED=true para activar webhook y verificación.'
+          echo 'Compose publicado; despliegue automático pendiente de la primera configuración de Portainer.' >> "$GITHUB_STEP_SUMMARY"

@@ -1,4 +1,7 @@
 FROM node:24-bookworm-slim
+ARG BUILD_REVISION=local
+LABEL org.opencontainers.image.revision=$BUILD_REVISION
+ENV BUILD_REVISION=$BUILD_REVISION
 ENV NODE_ENV=production PORT=3000 DOCUMENTS_ROOT=/app/product-documents
 WORKDIR /app
 COPY apps/api/package.json apps/api/package-lock.json ./

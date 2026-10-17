@@ -37,11 +37,7 @@ Guía oficial: https://developers.cloudflare.com/tunnel/get-started/
 
 ## CI y CD
 
-El workflow preparado valida Compose, construye y prueba una imagen linux/amd64 y publica en GHCR al subir cambios relevantes a `main`. Una PR valida sin publicar. No hay despliegue automático todavía: inicialmente se cambia `API_IMAGE` en Portainer y se actualiza el stack después de cada publicación.
-
-Para CD automático falta elegir y probar el mecanismo concreto en Portainer CE 2.33.1: actualización desde Git disponible en la instalación o un runner privado que invoque su API. No se expone Portainer a Internet. La automatización tendrá que cambiar la referencia de imagen solo tras publicar correctamente; un simple sondeo del código no garantiza ese orden. No usar una etiqueta mutable `latest` como sustituto de este paso.
-
-Guía oficial: https://docs.portainer.io/user/docker/stacks/add
+El workflow `Jaguar Docker` prueba y publica API y web, genera el Compose de producción con imágenes fijadas por commit/digest en `deploy/production` y, una vez activado, notifica a Portainer y verifica la versión servida. Ver [configuración inicial y diagnóstico](CI-CD.md). La primera configuración requiere cambiar la referencia Git del stack, preparar acceso a GHCR y activar la variable de Actions; no recrear el stack ni su volumen.
 
 ## pgAdmin instalado en el Mac
 

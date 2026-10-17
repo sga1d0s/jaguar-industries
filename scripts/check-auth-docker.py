@@ -41,6 +41,7 @@ try:
     const base='http://localhost:3000/api';
     const post=(path,body,token)=>fetch(base+path,{method:'POST',headers:{'content-type':'application/json',...(token?{authorization:'Bearer '+token}:{})},body:JSON.stringify(body)});
     assert.equal((await fetch(base+'/ready')).status,200);
+    assert.deepEqual(await (await fetch(base+'/version')).json(),{revision:process.env.BUILD_REVISION || 'local'});
     assert.equal((await fetch(base+'/auth/me')).status,401);
     assert.equal((await post('/auth/login',{email:'test@example.com',password:'wrong'})).status,401);
     const login=await post('/auth/login',{email:'TEST@example.com',password:'a-long-test-password-123'});
@@ -177,6 +178,9 @@ try:
           const response=await fetch(base+'/assets/'+image+'.png');assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'image/png');
         }
         const health=await fetch(base+'/api/ready');assert.equal(health.status,200);assert.equal((await health.json()).status,'ok');
+        const apiRevision=await (await fetch(base+'/api/version')).json();
+        const webRevision=await (await fetch(base+'/version.json')).json();
+        assert.deepEqual(apiRevision,webRevision);assert.equal(apiRevision.revision,process.env.BUILD_REVISION || 'local');
         assert.equal((await fetch(base+'/api/panel/units')).status,401);
         const login=await fetch(base+'/api/auth/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:'test@example.com',password:'a-long-test-password-123'})});
         assert.equal(login.status,200);const {token}=await login.json();
