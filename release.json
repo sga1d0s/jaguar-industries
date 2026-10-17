@@ -1,6 +1,6 @@
 {
   "managedBy": "jaguar-github-actions-v1",
-  "sourceCommit": "050c04136d95e95a0ff4f690d566d227b66e3808",
-  "apiImage": "ghcr.io/sga1d0s/jaguar-industries-api:sha-050c04136d95e95a0ff4f690d566d227b66e3808@sha256:694fbb1d728c0457e87e268857c867381bff3c1db789f82258c55f5b99a8660c",
-  "webImage": "ghcr.io/sga1d0s/jaguar-industries-web:sha-050c04136d95e95a0ff4f690d566d227b66e3808@sha256:fa27f26ab35c2da7da1cadde1a1dfc1bb55f71c7c6bd2090a1e4ea1be4de9478"
+  "sourceCommit": "929f2014a980f19af216d56c14ff8700225a833b",
+  "apiImage": "ghcr.io/sga1d0s/jaguar-industries-api:sha-929f2014a980f19af216d56c14ff8700225a833b@sha256:75363e5b2390ab6bd4b44e26197f9092f5385fed6c50590323e255381c38f0ff",
+  "webImage": "ghcr.io/sga1d0s/jaguar-industries-web:sha-929f2014a980f19af216d56c14ff8700225a833b@sha256:dd2cf8c8dfbca094f0064afcb5d5b3eb814b85e693f87111b50089d4174433f7"
 }
