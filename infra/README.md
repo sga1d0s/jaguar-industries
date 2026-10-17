@@ -1,11 +1,11 @@
 # Primer despliegue en Portainer
 
-Estado: infraestructura inicial. El servidor Node solo responde a `GET /api/health`; no implementa el producto ni conecta con PostgreSQL. Su estado saludable verifica HTTP, no la base de datos. El Compose espera a que PostgreSQL esté saludable antes de arrancarlo. El rol limitado de la futura API y las migraciones siguen pendientes; no se entrega la contraseña del propietario al servidor.
+Estado actual: PostgreSQL y API Node con autenticación y consulta por cliente ya están funcionando en el NAS. El Compose incorpora ahora el servicio `web`, que sirve el panel interno y reenvía `/api` a Node. Requiere añadir `WEB_IMAGE`, preparar el esquema del panel y actualizar la ruta del túnel. Seguir la [guía del panel](../apps/web/README.md) para actualizar el stack existente; los pasos iniciales de abajo conservan el contexto del primer despliegue.
 
 ## Archivos
 
 - `compose.yaml`: PostgreSQL original para desarrollo, conservado.
-- `compose.portainer.yaml`: stack inicial con PostgreSQL y Node.
+- `compose.portainer.yaml`: stack con PostgreSQL, Node y frontal web.
 - `compose.tunnel.yaml`: archivo adicional para activar Cloudflare más adelante.
 - `.env.example`: nombres de variables; los valores reales se introducen en Portainer.
 
@@ -13,7 +13,7 @@ Estado: infraestructura inicial. El servidor Node solo responde a `GET /api/heal
 
 Nombre elegido: **jaguar-industries**. El NAS comprobado tiene IP LAN `192.168.1.96`, Docker `27.1.2-qnap8`, x86-64 y unos 9,6 GiB de RAM visibles. No se encontraron contenedores Jaguar en la comprobación inicial.
 
-1. Construir la imagen en GitHub con el workflow `API Docker` (requiere subir los archivos al repositorio). Publica `ghcr.io/sga1d0s/jaguar-industries-api:sha-<SHA completo del commit>` tras validar Compose y probar HTTP. También puede ejecutarse manualmente con `workflow_dispatch`.
+1. Construir la imagen en GitHub con el workflow `Jaguar Docker` (requiere subir los archivos al repositorio). Publica `ghcr.io/sga1d0s/jaguar-industries-api:sha-<SHA completo del commit>` tras validar Compose y probar HTTP. También puede ejecutarse manualmente con `workflow_dispatch`.
 2. Si el paquete GHCR es privado, registrar `ghcr.io` en Portainer con credenciales de lectura de paquetes. No incluirlas en Git. El acceso al repositorio Git privado se configura por separado.
 3. En **Stacks → Add stack**, nombre `jaguar-industries`. Elegir repositorio Git `https://github.com/sga1d0s/jaguar-industries`, referencia `refs/heads/main`, Compose path `infra/compose.portainer.yaml`. Para una primera prueba también puede pegarse ese YAML en el editor web.
 4. Introducir las variables:

@@ -1,33 +1,37 @@
-# Despliegue previsto: QNAP y Cloudflare
+# Despliegue: QNAP y Cloudflare
 
 ## Entorno confirmado
 
-- Proyecto: jaguar-industries.
-- NAS: QNAP TS-251D, arquitectura Intel x86-64 / linux/amd64.
-- Gestión de contenedores: Portainer sobre Docker Standalone.
-- Dominio propuesto por el propietario: paneljaguar.sgaldos.com.
-- Publicación mediante Cloudflare. Se propone Tunnel; no se ha configurado ninguna ruta ni DNS.
-- Pendiente: RAM instalada, versión de Container Station/Docker/Compose y conector Cloudflare existente.
+- NAS QNAP TS-251D, linux/amd64, Docker 27.1.2-qnap8 y unos 9,6 GiB visibles.
+- Portainer Community Edition 2.33.1 LTS, Docker Standalone.
+- Stack `jaguar-industries`: PostgreSQL y API, volumen `jaguar-industries_postgres_data`.
+- Stack separado `jaguar-tunnel`: cloudflared conectado a `jaguar-industries_edge`.
+- Dominio `paneljaguar.sgaldos.com`, túnel conectado; origen actual `http://api:3000`.
 
-## Recorrido previsto
+## Entrega del panel interno
 
-Internet → Cloudflare HTTPS → cloudflared → gateway HTTP interno.
+El servicio `web` sirve los archivos del panel y actúa como proxy para `/api/`. Tras desplegar y comprobar su estado saludable, cambiar el origen de la ruta publicada a **`http://web:8080`**. El móvil conserva `https://paneljaguar.sgaldos.com/api`; su autorización por cliente continúa en la API.
 
-El gateway enviará `/api` a la API y el resto al panel web. El móvil usará `https://paneljaguar.sgaldos.com/api`. La API accederá a PostgreSQL y archivos privados. Publicar solo el gateway, sin acceso público a PostgreSQL, QTS ni Portainer.
+Recorrido: Internet → Cloudflare HTTPS → cloudflared → web:8080 → api:3000 → db:5432.
 
-Si cloudflared ya existe, conectar gateway y conector mediante una red Docker compartida explícita. Si es remoto al NAS, definir primero el transporte y la ruta al origen. Si se crea conector propio, usar una red compartida con el gateway y proporcionar el token desde Portainer, fuera de Git.
+Seguir [la guía completa](../apps/web/README.md) para construir imágenes, aplicar la migración aditiva con copia previa, conceder acceso a la cuenta interna y actualizar Portainer. Variables nuevas: `WEB_IMAGE` y, opcionalmente, `JAGUAR_WEB_PORT` (3082). Conservar las demás variables y el volumen. Si el stack procede de Git, requiere los archivos actualizados en el remoto.
 
-En Cloudflare, el hostname apuntará a `http://gateway:80` solo cuando ese servicio y su red existan. Esta dirección es una propuesta, no un servicio disponible hoy. Evitar almacenar en caché respuestas de API, autenticación y documentos privados. La autenticación propia y los permisos de la API seguirán siendo obligatorios. Cualquier política Cloudflare Access debe probarse con los clientes móviles, sin incrustar credenciales de servicio en la app.
+El frontal no accede directamente a PostgreSQL. Las cuentas de cliente no tienen permiso de panel; se comprueba una autorización independiente en `panel_operators` en cada petición. El navegador mantiene el token solo en el almacenamiento de sesión de su pestaña. Las descargas se autentican y las respuestas privadas llevan `no-store`.
 
-## Recursos y operación
+## Acceso local y operación
 
-Construir imágenes linux/amd64 fuera del NAS y desplegar versiones identificadas por commit. El NAS ejecutará las imágenes; no compilará iOS. Empezar con gateway, web, API y PostgreSQL, sin Redis ni almacenamiento S3 adicional hasta necesitarlo. Ajustar límites según RAM disponible y servicios existentes.
+- API LAN: `http://192.168.1.96:3080/api/ready`.
+- Panel LAN tras despliegue: `http://192.168.1.96:3082`.
+- pgAdmin LAN: `192.168.1.96:15433`; PostgreSQL permanece en `db:5432` para la API.
 
-El Compose actual solo contiene PostgreSQL. En Portainer configurar POSTGRES_PASSWORD y desplegar sin publicar puertos. No es todavía un despliegue funcional del producto. La API futura tendrá su rol limitado y las migraciones serán un paso explícito del despliegue.
+La red `backend` es interna. PostgreSQL tiene además `db_admin`, necesaria para activar la publicación LAN en este Docker; el frontal solo pertenece a `edge`. No se publica PostgreSQL, QTS ni Portainer mediante el túnel.
 
-Conservar volumen de PostgreSQL y volumen futuro de documentos. Copias fuera del NAS y restauración probada. Cambiar POSTGRES_PASSWORD en Portainer no cambia automáticamente una contraseña de una base ya inicializada: requiere una operación de rotación en PostgreSQL.
+El workflow `Jaguar Docker` valida Compose, prueba API y frontal con una base temporal y publica ambas imágenes con etiquetas inmutables por commit. No cambia automáticamente las variables del stack. La primera prueba puede usar las imágenes locales `jaguar-api:panel-check` y `jaguar-web:panel-check` sin volver a descargarlas.
+
+Las migraciones se ejecutan explícitamente con el propietario; el servidor usa `jaguar_app`. Cambiar `POSTGRES_PASSWORD` en Portainer no rota la contraseña de una base inicializada. Conservar copias fuera del NAS y verificar restauraciones antes de dar el servicio por listo para producción.
 
 ## Fuentes
 
-- QNAP: https://www.qnap.com/en/product/ts-251d/specs/hardware
-- Cloudflare Tunnel: https://developers.cloudflare.com/tunnel/get-started/
+- [Cloudflare Tunnel](https://developers.cloudflare.com/tunnel/get-started/)
+- [Stacks de Portainer](https://docs.portainer.io/user/docker/stacks/add)
+- [NGINX sin privilegios](https://github.com/nginx/docker-nginx-unprivileged)

@@ -1,0 +1,9 @@
+{
+  "name": "@jaguar/web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check public/app.js",
+    "start": "node preview.mjs"
+  }
+}

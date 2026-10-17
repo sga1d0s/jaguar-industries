@@ -57,6 +57,26 @@ services:
       - no-new-privileges:true
     logging: *logging
 
+  # Sirve el panel y reenvía /api a Node, conservando la dirección de la app móvil.
+  web:
+    image: ${WEB_IMAGE:?Define WEB_IMAGE con la imagen del panel y su version}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - edge
+    ports:
+      - '${JAGUAR_BIND_IP:?Define la IP LAN del NAS}:${JAGUAR_WEB_PORT:-3082}:8080'
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+
 networks:
   backend:
     internal: true

@@ -1,10 +1,10 @@
-name: API Docker
+name: Jaguar Docker
 on:
   pull_request:
-    paths: ['apps/api/**', 'docs/referencias/productos/**', '.dockerignore', 'infra/**', 'scripts/check-auth-docker.py', '.github/workflows/docker.yml']
+    paths: ['apps/api/**', 'apps/web/**', 'docs/referencias/productos/**', '.dockerignore', 'infra/**', 'scripts/check-auth-docker.py', '.github/workflows/docker.yml']
   push:
     branches: [main]
-    paths: ['apps/api/**', 'docs/referencias/productos/**', '.dockerignore', 'infra/**', 'scripts/check-auth-docker.py', '.github/workflows/docker.yml']
+    paths: ['apps/api/**', 'apps/web/**', 'docs/referencias/productos/**', '.dockerignore', 'infra/**', 'scripts/check-auth-docker.py', '.github/workflows/docker.yml']
   workflow_dispatch:
 
 permissions:
@@ -23,6 +23,7 @@ jobs:
           POSTGRES_PASSWORD: ci-placeholder
           APP_DATABASE_PASSWORD: ci-placeholder-not-a-real-secret
           API_IMAGE: jaguar-api:ci
+          WEB_IMAGE: jaguar-web:ci
           JAGUAR_BIND_IP: 127.0.0.1
           CLOUDFLARED_IMAGE: cloudflare/cloudflared:ci-placeholder
           TUNNEL_TOKEN: ci-placeholder
@@ -32,7 +33,9 @@ jobs:
       - uses: docker/setup-buildx-action@v3
       - name: Image metadata
         id: meta
-        run: echo "image=ghcr.io/${GITHUB_REPOSITORY,,}-api:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "image=ghcr.io/${GITHUB_REPOSITORY,,}-api:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "web=ghcr.io/${GITHUB_REPOSITORY,,}-web:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
       - uses: docker/build-push-action@v6
         with:
           context: .
@@ -40,11 +43,19 @@ jobs:
           platforms: linux/amd64
           load: true
           tags: jaguar-api:ci
+      - name: Verify web JavaScript
+        run: node --check apps/web/public/app.js
+      - uses: docker/build-push-action@v6
+        with:
+          context: apps/web
+          platforms: linux/amd64
+          load: true
+          tags: jaguar-web:ci
       - name: Verify authentication
         run: |
           docker run --rm jaguar-api:ci node --test auth.test.mjs
           docker tag jaguar-api:ci jaguar-api:login-check
-          python3 scripts/check-auth-docker.py
+          JAGUAR_TEST_WEB_IMAGE=jaguar-web:ci python3 scripts/check-auth-docker.py
       - name: Verify container
         run: |
           docker run -d --name jaguar-api-ci -p 127.0.0.1:3000:3000 jaguar-api:ci
@@ -69,3 +80,10 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.image }}
+      - uses: docker/build-push-action@v6
+        if: github.event_name != 'pull_request'
+        with:
+          context: apps/web
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.web }}

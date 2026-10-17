@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
 import { pool } from './db.mjs';
 import { equipmentRoute } from './equipment.mjs';
+import { panelRoute } from './panel.mjs';
 import { hashPassword, verifyPassword, newToken, tokenHash } from './auth.mjs';
 // Si el correo no existe, calculamos igualmente scrypt para reducir diferencias de tiempo
 // que podrían ayudar a averiguar qué cuentas existen.
@@ -73,6 +74,8 @@ const server = createServer(async (req, res) => {
       const { rows } = await pool.query('SELECT u.id,u.email,u.name FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now() AND u.active', [hash]);
       return rows[0] ? reply(res, 200, { user: rows[0] }) : reply(res, 401, { error: 'La sesión ha caducado. Vuelve a entrar.' });
     }
+    // El panel interno exige un permiso propio; las rutas móviles mantienen su alcance.
+    if (await panelRoute(req, res, reply)) return;
     // Las rutas de equipos aplican el alcance del cliente antes de devolver datos o PDF.
     if (await equipmentRoute(req, res, reply)) return;
     return reply(res, 404, { error: 'Not found' });

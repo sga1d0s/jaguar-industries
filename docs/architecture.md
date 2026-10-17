@@ -35,3 +35,9 @@ Entornos separados de desarrollo y producción. Antes de producción: autenticac
 ## Primera entrega funcional
 
 Alta de equipo → vinculación NFC → asignación a cliente → descarga autorizada → consulta e inspección offline → sincronización idempotente → consulta desde panel del cliente. Validar este recorrido antes de ampliar módulos.
+
+## Panel interno Jaguar (primera entrega)
+
+El dominio del panel sirve un frontal estático y un proxy `/api/` al servidor Node. El permiso de gestión interna se guarda en `panel_operators`, separado de las membresías que autorizan al cliente en la app. Se valida en cada ruta del panel, también en los PDF. Solo una tarea del propietario de PostgreSQL concede/revoca ese permiso; la API no puede escribir esa tabla.
+
+Las organizaciones distinguen cliente/Jaguar. Una unidad se registra como propiedad de Jaguar; una venta transfiere la propiedad y un alquiler solo asigna el uso. Asignar o devolver bloquea la unidad y registra auditoría junto con los cambios. Las unidades DEMO no se modifican desde el panel ni cuentan como actividad real. La descarga común sigue vinculada al modelo. La primera entrega no permite editar/borrar ni cargar documentación nueva o gestionar credenciales.

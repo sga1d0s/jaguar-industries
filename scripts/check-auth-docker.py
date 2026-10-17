@@ -6,6 +6,7 @@ suffix=secrets.token_hex(4)
 network='jaguar-auth-test-'+suffix
 db=network+'-db'
 api=network+'-api'
+web=network+'-web'
 owner=secrets.token_urlsafe(32)
 app=secrets.token_urlsafe(32)
 def run(*args,env=None,input=None):
@@ -29,7 +30,9 @@ try:
     for email in ['test@example.com','other@example.com']:
         seed=['run','--rm',*common,'-e','PGUSER=jaguar_owner','-e','PGPASSWORD',image,'node','scripts/seed-equipment.mjs',email]
         run(*seed,env=admin);run(*seed,env=admin)
-    run('run','-d','--name',api,*common,'-e','PGUSER=jaguar_app','-e','PGPASSWORD','--read-only','--cap-drop','ALL',image,env={'PGPASSWORD':app})
+    panel_migration=migration[:-1]+['scripts/migrate-panel.mjs','test@example.com']
+    run(*panel_migration,env=admin);run(*panel_migration,env=admin)
+    run('run','-d','--name',api,'--network-alias','api',*common,'-e','PGUSER=jaguar_app','-e','PGPASSWORD','--read-only','--cap-drop','ALL',image,env={'PGPASSWORD':app})
     for _ in range(30):
         try: run('exec',api,'node','-e',"fetch('http://localhost:3000/api/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"); break
         except subprocess.CalledProcessError: time.sleep(1)
@@ -81,6 +84,83 @@ try:
     await pool.end(); console.log('OK: migración repetible, login, sesión, logout, límite de intentos y rol limitado');
     """
     print(run('exec',api,'node','--input-type=module','-e',code).strip())
+    # El operador gestiona inventario, pero una cuenta de cliente no puede consultar
+    # ni modificar el panel. Las carreras de asignación deben tener un solo ganador.
+    panel_code="""
+    const assert=(await import('node:assert/strict')).default;
+    const base='http://localhost:3000/api';
+    const login=async email=>(await (await fetch(base+'/auth/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email,password:'a-long-test-password-123'})})).json()).token;
+    const token=await login('test@example.com'), customer=await login('other@example.com');
+    const call=(path,body,t=token)=>fetch(base+'/panel/'+path,{method:body?'POST':'GET',headers:{authorization:'Bearer '+t,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
+    assert.equal((await fetch(base+'/panel/me')).status,401);
+    for(const path of ['me','summary','clients','models','units'])assert.equal((await call(path,null,customer)).status,403);
+    assert.equal((await call('clients',{name:'Forbidden'},customer)).status,403);
+    const summary=await (await call('summary')).json();assert.equal(summary.units,0);assert.equal(summary.all_units,4);assert.equal(summary.clients,0);
+    const models=(await (await call('models')).json()).items;
+    const doc=models[0].documents[0].id;
+    assert.equal((await call('documents/'+doc,null,customer)).status,403);
+    const pdf=await call('documents/'+doc);assert.equal(pdf.headers.get('content-type'),'application/pdf');assert.equal(new TextDecoder().decode((await pdf.arrayBuffer()).slice(0,5)),'%PDF-');
+    const create=async(path,body)=>{const response=await call(path,body);assert.equal(response.status,201,await response.clone().text());return response.json();};
+    const client=await create('clients',{name:'Cliente integración'});
+    const model=await create('models',{code:'TEST',name:'Modelo de prueba',category:'Pruebas',description:'Solo base temporal'});
+    const variant=await create('variants',{modelId:model.id,reference:'TEST-1',name:'Variante de prueba',specifications:[{label:'Carga',value:'100 kg'}]});
+    assert.equal((await call('variants',{modelId:model.id,reference:'TEST-1',name:'Duplicada',specifications:[]})).status,409);
+    assert.equal((await call('clients',{name:''})).status,400);
+    assert.equal((await call('units',{variantId:'invalid',serialNumber:'X'})).status,400);
+    const unit=await create('units',{variantId:variant.id,serialNumber:'REAL-TEST-1'});
+    const assignments=await Promise.all([call('assignments',{equipmentId:unit.id,clientId:client.id,kind:'rental'}),call('assignments',{equipmentId:unit.id,clientId:client.id,kind:'sale'})]);
+    assert.deepEqual(assignments.map(r=>r.status).sort(),[201,400]);
+    // Nueva unidad con alquiler completo, devolución y venta posterior.
+    const second=await create('units',{variantId:variant.id,serialNumber:'REAL-TEST-2'});
+    const rental=await create('assignments',{equipmentId:second.id,clientId:client.id,kind:'rental'});
+    assert.equal((await call('assignments',{equipmentId:second.id,clientId:client.id,kind:'rental'})).status,400);
+    const returns=await Promise.all([call('assignments/'+rental.id+'/end',{}),call('assignments/'+rental.id+'/end',{})]);
+    assert.deepEqual(returns.map(r=>r.status).sort(),[201,400]);
+    assert.equal((await call('assignments/'+rental.id+'/end',{})).status,400);
+    const sale=await create('assignments',{equipmentId:second.id,clientId:client.id,kind:'sale'});
+    assert.equal((await call('assignments/'+sale.id+'/end',{})).status,400);
+    assert.equal((await call('assignments',{equipmentId:second.id,clientId:client.id,kind:'rental'})).status,400);
+    const units=(await (await call('units')).json()).items;
+    const sold=units.find(e=>e.id===second.id);assert.equal(sold.owner_name,'Cliente integración');assert.equal(sold.assignment_kind,'sale');assert.equal(sold.client_id,client.id);assert.equal(sold.nfc_linked,false);
+    // Los nuevos clientes no se vinculan accidentalmente al usuario operador o a otro cliente.
+    const mobile=(await (await fetch(base+'/equipment',{headers:{authorization:'Bearer '+customer}})).json()).items;
+    assert.equal(mobile.some(e=>e.id===unit.id || e.id===second.id),false);
+    const {pool}=await import('./db.mjs');
+    const user=(await pool.query("SELECT id FROM users WHERE email='other@example.com'")).rows[0];
+    await assert.rejects(pool.query('INSERT INTO panel_operators(user_id) VALUES($1)',[user.id]));
+    await assert.rejects(pool.query('DELETE FROM panel_audit'));
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM panel_audit')).rows[0].n,9);
+    await pool.end(); console.log('OK: panel aislado, altas, validación, auditoría, asignación concurrente, devolución y propiedad de venta');
+    """
+    print(run('exec',api,'node','--input-type=module','-e',panel_code).strip())
+    if os.environ.get('JAGUAR_TEST_WEB_IMAGE'):
+        run('run','-d','--name',web,'--network',network,'--read-only','--tmpfs','/tmp:rw,noexec,nosuid,size=32m,mode=1777','--cap-drop','ALL',os.environ['JAGUAR_TEST_WEB_IMAGE'])
+        web_code="""
+        const assert=(await import('node:assert/strict')).default;
+        const base=process.argv[1];
+        for(let i=0;i<30;i++){try{if((await fetch(base+'/healthz')).ok)break;}catch{}await new Promise(r=>setTimeout(r,1000));}
+        const page=await fetch(base+'/');assert.equal(page.status,200);assert.match(await page.text(),/Panel de equipos/);
+        assert.match(page.headers.get('content-security-policy'),/frame-ancestors 'none'/);
+        const js=await fetch(base+'/app.js');assert.equal(js.status,200);assert.match(js.headers.get('content-type'),/javascript/);
+        const health=await fetch(base+'/api/ready');assert.equal(health.status,200);assert.equal((await health.json()).status,'ok');
+        assert.equal((await fetch(base+'/api/panel/units')).status,401);
+        const login=await fetch(base+'/api/auth/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:'test@example.com',password:'a-long-test-password-123'})});
+        assert.equal(login.status,200);const {token}=await login.json();
+        const headers={authorization:'Bearer '+token};assert.equal((await fetch(base+'/api/panel/me',{headers})).status,200);
+        const units=await fetch(base+'/api/equipment',{headers});assert.equal(units.status,200);assert.equal((await units.json()).items.length,2);
+        console.log('OK: frontal de solo lectura, CSP, login y rutas web/móvil a través del proxy');
+        """
+        print(run('exec',api,'node','--input-type=module','-e',web_code,'http://'+web+':8080').strip())
+    # Retirar el permiso interno invalida inmediatamente la sesión para el panel.
+    run('exec',db,'psql','-U','jaguar_owner','-d','jaguar','-c','DELETE FROM panel_operators')
+    revoke_panel="""
+    const assert=(await import('node:assert/strict')).default;
+    const r=await fetch('http://localhost:3000/api/auth/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:'test@example.com',password:'a-long-test-password-123'})});
+    const {token}=await r.json();
+    assert.equal((await fetch('http://localhost:3000/api/panel/units',{headers:{authorization:'Bearer '+token}})).status,403);
+    console.log('OK: revocación del permiso interno');
+    """
+    print(run('exec',api,'node','--input-type=module','-e',revoke_panel).strip())
     # Al retirar la asignación debe desaparecer el acceso incluso con un token válido.
     revoke="DELETE FROM memberships WHERE user_id=(SELECT id FROM users WHERE email='other@example.com')"
     run('exec',db,'psql','-U','jaguar_owner','-d','jaguar','-c',revoke)
@@ -97,6 +177,6 @@ try:
     print(run('exec',api,'node','--input-type=module','-e',revoked).strip())
 # Esta limpieza se ejecuta también si falla una comprobación; la base es temporal.
 finally:
-    for name in [api,db]:
+    for name in [web,api,db]:
         subprocess.run(['docker','rm','-f',name],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     subprocess.run(['docker','network','rm',network],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
