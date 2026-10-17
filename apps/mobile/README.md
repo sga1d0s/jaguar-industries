@@ -44,7 +44,20 @@ El perfil preview genera un APK instalable por enlace sin Metro. No es el flujo 
 
 ## iOS
 
-Código compartido y perfil production preparados. No se ha generado ni firmado una app iOS. La distribución mediante TestFlight/App Store requiere la cuenta Apple Developer del propietario, los certificados y la configuración de App Store Connect. No se ha publicado en ninguna tienda.
+El proyecto nativo se genera con Expo y no se versiona. Para preparar una instalación local desde el Mac:
+
+```bash
+nvm use
+pnpm --filter @jaguar/mobile exec expo prebuild --platform ios --no-install
+cd apps/mobile/ios
+pod install
+```
+
+Abrir `JaguarIndustries.xcworkspace` en Xcode, seleccionar el target JaguarIndustries y elegir el equipo de la cuenta Apple en Signing & Capabilities. El iPhone debe estar emparejado por USB y tener activado el modo desarrollador. La primera compilación Release local ya se ha firmado e instalado en un iPhone 13 mini. Incluye el bundle JavaScript y no necesita Metro para arrancar.
+
+En la primera instalación con Personal Team, iOS puede exigir confiar en la cuenta desde Ajustes → General → VPN y gestión de dispositivos → App del desarrollador. Este paso lo completa el propietario en el teléfono. La instalación inicial y el arranque están verificados: el propietario confirmó que aparece el login después de autorizar la firma.
+
+La distribución mediante TestFlight/App Store requiere la cuenta Apple Developer del propietario, los certificados y la configuración de App Store Connect. No se ha publicado en ninguna tienda.
 
 ## Verificación en teléfono
 
