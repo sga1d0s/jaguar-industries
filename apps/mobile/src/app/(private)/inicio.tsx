@@ -1,4 +1,4 @@
-import { useEffect, useState, type ComponentProps } from 'react';
+import { useCallback, useState, type ComponentProps } from 'react';
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -6,6 +6,7 @@ import Feather from '@expo/vector-icons/Feather';
 import { router } from 'expo-router';
 import { useAuth } from '../../lib/session';
 import { loadSummary, type EquipmentSummary } from '../../lib/dashboard';
+import { useLiveQuery } from '../../hooks/use-live-query';
 import { colors } from '../../components/equipment-ui';
 
 type Feature={title:string;subtitle:string;icon:ComponentProps<typeof Feather>['name'];action:'equipment'|'scan'|'documents'|'help'|'soon';badge?:string;description?:string};
@@ -23,23 +24,11 @@ const features:Feature[]=[
 
 export default function HomeScreen(){
   const {user,logout,authenticatedRequest}=useAuth();
-  const [summary,setSummary]=useState<EquipmentSummary|null>(null);
-  const [loading,setLoading]=useState(true);
-  const [failed,setFailed]=useState(false);
+  const load=useCallback(()=>loadSummary(authenticatedRequest),[authenticatedRequest]);
+  const {data:summary,loading,error,refresh:reload}=useLiveQuery<EquipmentSummary>(load);
+  const failed=!!error;
+  const refresh=()=>{void reload();};
   const [signingOut,setSigningOut]=useState(false);
-  // Carga contadores reales, respetando el mismo alcance de cliente que Mis equipos.
-  useEffect(()=>{
-    let mounted=true;
-    loadSummary(authenticatedRequest).then(data=>{if(mounted)setSummary(data);})
-      .catch(()=>{if(mounted)setFailed(true);}).finally(()=>{if(mounted)setLoading(false);});
-    return ()=>{mounted=false;};
-  },[authenticatedRequest]);
-  async function refresh(){
-    if(loading)return;
-    setLoading(true);
-    try{setSummary(await loadSummary(authenticatedRequest));setFailed(false);}
-    catch{setFailed(true);}finally{setLoading(false);}
-  }
   async function signOut(){
     setSigningOut(true);
     try{await logout();}catch{Alert.alert('No se pudo cerrar la sesión','Comprueba tu conexión y vuelve a intentarlo.');setSigningOut(false);}

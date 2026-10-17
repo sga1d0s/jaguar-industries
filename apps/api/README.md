@@ -41,3 +41,9 @@ El script de pruebas también comprueba dos clientes aislados, repetición de mi
 `POST /api/panel/clients` acepta `{name, appUser?: {name,email,password}}`. Solo operadores internos pueden ejecutarlo. El correo se normaliza a minúsculas; la contraseña exige 12 caracteres y un máximo de 1024 bytes y se guarda con scrypt. Organización, usuario, membresía y auditoría se confirman juntos. Un email duplicado devuelve 409 y revierte la organización; no se reutilizan ni alteran cuentas existentes. La cuenta creada no recibe `panel_operators`.
 
 Bases existentes: ejecutar `node scripts/migrate-client-access.mjs` con el rol propietario antes de desplegar, preferiblemente mediante `scripts/setup-client-access-nas.py` con copia previa. Solo añade INSERT sobre las columnas necesarias de users y memberships; no concede UPDATE de usuarios ni escritura sobre panel_operators. El GET de clientes incluye app_users (usuarios activos vinculados).
+
+## Avisos SSE de asignaciones
+
+GET /api/events requiere Bearer válido y devuelve text/event-stream. Emite ready al conectar y equipment-changed después de confirmar una asignación/devolución. Los eventos solo contienen una invalidación vacía; el móvil vuelve a consultar sus rutas autorizadas. Al emitir se comprueban las sesiones vigentes, usuario activo y membresía del cliente afectado. Un heartbeat cada15s no consulta PostgreSQL. Las conexiones se renuevan cada5min y se limitan a5 por usuario/1000 por proceso. El apagado de la API cierra el canal para provocar reconexión y reconciliación.
+
+El registro de conexiones está en memoria y corresponde a la única instancia Node actual. Antes de escalar a varios procesos/réplicas se debe añadir distribución compartida de eventos (por ejemplo PostgreSQL LISTEN/NOTIFY); PM2 con varias instancias no se puede activar sin ese cambio. Ediciones directas en PostgreSQL no emiten eventos. Nginx desactiva buffering/caché para /api/events. No requiere migración ni privilegios nuevos.

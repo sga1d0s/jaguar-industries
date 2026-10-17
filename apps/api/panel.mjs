@@ -1,3 +1,4 @@
+import { equipmentChanged } from './events.mjs';
 import { pool } from './db.mjs';
 import { hashPassword } from './auth.mjs';
 import { sessionUser, documentRoot } from './equipment.mjs';
@@ -107,6 +108,7 @@ export async function panelRoute(req,res,reply) {
     // Datos y registro de auditoría se confirman juntos. Bloquear la unidad evita
     // vender/alquilar dos veces cuando llegan formularios simultáneos.
     const client=await pool.connect();
+    let changedOrganization;
     try {
       await client.query('BEGIN');
       let result, action=section;
@@ -149,10 +151,11 @@ export async function panelRoute(req,res,reply) {
         if (!customer) throw new InputError('El cliente no existe.');
         result=(await client.query('INSERT INTO equipment_assignments(equipment_id,client_organization_id,kind,starts_at) VALUES($1,$2,$3,clock_timestamp()) RETURNING id',
           [unit.id,customer.id,input.kind])).rows[0];
+        changedOrganization=customer.id;
         if (input.kind==='sale') await client.query('UPDATE equipment SET owner_organization_id=$1 WHERE id=$2',[customer.id,unit.id]);
       } else {
         id(end[1]);
-        const assignment=(await client.query(`SELECT a.equipment_id,e.is_demo FROM equipment_assignments a
+        const assignment=(await client.query(`SELECT a.equipment_id,a.client_organization_id,e.is_demo FROM equipment_assignments a
           JOIN equipment e ON e.id=a.equipment_id WHERE a.id=$1`,[end[1]])).rows[0];
         if (!assignment) throw new InputError('Asignación no disponible.');
         if (assignment.is_demo) throw new InputError('Las unidades DEMO son solo de consulta en el panel.');
@@ -160,6 +163,7 @@ export async function panelRoute(req,res,reply) {
         result=(await client.query(`UPDATE equipment_assignments SET ends_at=clock_timestamp()
           WHERE id=$1 AND kind='rental' AND starts_at<=clock_timestamp() AND (ends_at IS NULL OR ends_at>clock_timestamp()) RETURNING id`,[end[1]])).rows[0];
         if (!result) throw new InputError('Solo se puede finalizar un alquiler vigente.');
+        changedOrganization=assignment.client_organization_id;
         action='end-rental';
       }
       await client.query('INSERT INTO panel_audit(actor_id,action,target_id) VALUES($1,$2,$3)',[user.id,action,result.id]);
@@ -167,6 +171,8 @@ export async function panelRoute(req,res,reply) {
       reply(res,201,result);
     } catch(error) { await client.query('ROLLBACK'); throw error; }
     finally { client.release(); }
+    // Libera la conexión de escritura antes de consultar destinatarios del aviso.
+    if(changedOrganization)await equipmentChanged(changedOrganization);
   } catch(error) {
     if (error instanceof InputError) reply(res,400,{error:error.message});
     else if (error.code==='23505') reply(res,409,{error:url.pathname==='/api/panel/clients'?'Ya existe una cuenta con ese email. No se ha creado el cliente ni se ha modificado la cuenta existente.':'Ya existe ese código, referencia o número de serie.'});

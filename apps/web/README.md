@@ -63,3 +63,7 @@ python3 scripts/setup-client-access-nas.py --image jaguar-api:client-access-chec
 ```
 
 Después integrar los cambios mediante dev → main para publicar API y web por el CI/CD existente. No es necesario modificar API_IMAGE/WEB_IMAGE en el stack de la rama deploy/production. La migración no crea cuentas ni concede acceso interno. No hace falta recompilar las apps móviles.
+
+## Proxy de actualizaciones SSE
+
+La ubicación exacta /api/events reenvía el canal autenticado de la app a la API con buffering/caché desactivados y timeout60s. Los comentarios keepalive llegan cada15s. Desplegar esta configuración junto con la API SSE; no cambia el origen del túnel Cloudflare ni necesita abrir puertos.

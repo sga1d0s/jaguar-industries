@@ -130,13 +130,39 @@ try:
     assert.equal((await call('clients',{name:''})).status,400);
     assert.equal((await call('units',{variantId:'invalid',serialNumber:'X'})).status,400);
     const unit=await create('units',{variantId:variant.id,serialNumber:'REAL-TEST-1'});
+    // SSE autentica por cabecera y no filtra avisos entre empresas. El lector
+    // permanece abierto durante la asignación para comprobar entrega inmediata.
+    assert.equal((await fetch(base+'/events')).status,401);
+    const watch=async t=>{
+      const controller=new AbortController();
+      const response=await fetch(base+'/events',{headers:{authorization:'Bearer '+t},signal:controller.signal});
+      assert.equal(response.status,200);assert.ok(response.headers.get('content-type').includes('text/event-stream'));
+      const events=[],reader=response.body.getReader(),decoder=new TextDecoder();
+      let pending='';
+      const pump=(async()=>{try{while(true){
+        const {done,value}=await reader.read();if(done)break;
+        pending+=decoder.decode(value,{stream:true});let end;
+        while((end=pending.indexOf('\\n\\n'))!==-1){const frame=pending.slice(0,end);pending=pending.slice(end+2);const event=frame.match(/^event: (.+)$/m);if(event)events.push(event[1]);}
+      }}catch{}})();
+      const until=async(event,count=1)=>{
+        const deadline=Date.now()+5000;
+        while(events.filter(e=>e===event).length<count){if(Date.now()>deadline)throw new Error('Aviso SSE no recibido: '+event);await new Promise(r=>setTimeout(r,20));}
+      };
+      await until('ready');return {events,until,close:async()=>{controller.abort();await pump;}};
+    };
+    const ownStream=await watch(customerSession.token),foreignStream=await watch(customer);
     const customerUnit=await create('units',{variantId:variant.id,serialNumber:'CUSTOMER-APP-1'});
     const customerRental=await create('assignments',{equipmentId:customerUnit.id,clientId:registered.id,kind:'rental'});
+    await ownStream.until('equipment-changed');
+    assert.equal(foreignStream.events.includes('equipment-changed'),false);
     const accessible=await (await customerGet('/equipment')).json();assert.equal(accessible.items.length,1);assert.equal(accessible.items[0].id,customerUnit.id);
     assert.equal((await customerGet('/equipment/'+customerUnit.id)).status,200);
     assert.equal((await customerGet('/equipment/'+(await (await fetch(base+'/equipment',{headers:{authorization:'Bearer '+customer}})).json()).items[0].id)).status,404);
     await create('assignments/'+customerRental.id+'/end',{});
+    await ownStream.until('equipment-changed',2);
     assert.equal((await customerGet('/equipment/'+customerUnit.id)).status,404);
+    await ownStream.close();await foreignStream.close();
+    const reconnected=await watch(customerSession.token);await reconnected.close();
     const assignments=await Promise.all([call('assignments',{equipmentId:unit.id,clientId:client.id,kind:'rental'}),call('assignments',{equipmentId:unit.id,clientId:client.id,kind:'sale'})]);
     assert.deepEqual(assignments.map(r=>r.status).sort(),[201,400]);
     // Nueva unidad con alquiler completo, devolución y venta posterior.
@@ -175,7 +201,7 @@ try:
     assert.notEqual(account.password_hash,accountData.password);
     assert.equal((await pool.query("SELECT 1 FROM panel_operators p JOIN users u ON u.id=p.user_id WHERE u.email='nuevo@example.com'")).rowCount,0);
     assert.equal((await pool.query('SELECT count(*)::int AS n FROM panel_audit')).rows[0].n,15);
-    await pool.end(); console.log('OK: panel aislado, altas, validación, auditoría, asignación concurrente, devolución y propiedad de venta');
+    await pool.end(); console.log('OK: panel aislado, altas, SSE autenticado y por cliente, reconexión, auditoría y asignaciones');
     """
     print(run('exec',api,'node','--input-type=module','-e',panel_code).strip())
     # Importar dos veces no duplica referencias, unidades o documentos. Se conserva
@@ -230,7 +256,12 @@ try:
         assert.equal(login.status,200);const {token}=await login.json();
         const headers={authorization:'Bearer '+token};assert.equal((await fetch(base+'/api/panel/me',{headers})).status,200);
         const units=await fetch(base+'/api/equipment',{headers});assert.equal(units.status,200);assert.equal((await units.json()).items.length,2);
-        console.log('OK: frontal de solo lectura, CSP, login y rutas web/móvil a través del proxy');
+        // El proxy debe entregar ready inmediatamente, sin esperar a llenar buffers.
+        const controller=new AbortController();
+        const stream=await fetch(base+'/api/events',{headers,signal:AbortSignal.any([controller.signal,AbortSignal.timeout(5000)])});
+        assert.equal(stream.status,200);assert.ok(stream.headers.get('content-type').includes('text/event-stream'));
+        const first=await stream.body.getReader().read();assert.match(new TextDecoder().decode(first.value),/event: ready/);controller.abort();
+        console.log('OK: frontal, CSP, login, rutas web/móvil y SSE inmediato a través del proxy');
         """
         print(run('exec',api,'node','--input-type=module','-e',web_code,'http://'+web+':8080').strip())
     # Retirar el permiso interno invalida inmediatamente la sesión para el panel.

@@ -86,3 +86,13 @@ El resumen usa `/equipment/summary`. Por compatibilidad con la API anterior, si 
 ## Fotografías del catálogo
 
 La app incluye las fotos oficiales de las ocho familias actuales (630, BT, 650, 500, 900, BC, EM y GC), con fuentes y hashes en `assets/products/fuentes.json`. Lista y ficha comparten el selector `productPhoto` por código de modelo. Los modelos desconocidos muestran su código como marcador. Las imágenes están empaquetadas en la app: incorporar fotos nuevas requiere actualizar el APK/bundle instalado, aunque las asignaciones se consultan en la API y aparecen sin reinstalar.
+
+## Actualización automática de asignaciones
+
+Una sola conexión SSE autenticada por app recibe avisos de asignación/devolución para las empresas de la cuenta. Inicio, lista y ficha consultan la API al entrar, al volver a primer plano y al recibir un aviso; las pantallas ocultas no consultan. No hay consultas periódicas de equipos. Los cambios automáticos son silenciosos; solo el gesto manual activa el indicador de refresco.
+
+Al reconectar, el evento ready provoca una reconciliación con el estado actual, sin depender de reproducir mensajes antiguos. La conexión se cierra en segundo plano o al cambiar/cerrar sesión. Los fallos reintentan con espera creciente hasta unos 30 segundos y un watchdog detecta conexiones sin tráfico. Si llega otro aviso durante una consulta, se repite al terminar para no perder el cambio. La lista conserva el alcance de páginas cargadas y retira asignaciones finalizadas.
+
+La API y Nginx deben incluir la ruta /api/events. Las credenciales solo viajan por Authorization. Los keepalive de SSE mantienen el canal abierto sin consultar equipos ni PostgreSQL; no son peticiones HTTP nuevas. Este canal es para la app activa, no notificaciones push. No incorpora todavía una biblioteca offline persistente; tras recuperar conexión se consulta la información vigente.
+
+Se requiere actualizar API/web mediante el CI/CD e instalar las nuevas compilaciones Android/iOS. No hay migración de base de datos ni contenedor adicional.

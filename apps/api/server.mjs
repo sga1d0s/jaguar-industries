@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
 import { pool } from './db.mjs';
 import { equipmentRoute } from './equipment.mjs';
+import { eventsRoute, closeEventStreams } from './events.mjs';
 import { panelRoute } from './panel.mjs';
 import { hashPassword, verifyPassword, newToken, tokenHash } from './auth.mjs';
 // Si el correo no existe, calculamos igualmente scrypt para reducir diferencias de tiempo
@@ -77,6 +78,7 @@ const server = createServer(async (req, res) => {
       return rows[0] ? reply(res, 200, { user: rows[0] }) : reply(res, 401, { error: 'La sesión ha caducado. Vuelve a entrar.' });
     }
     // El panel interno exige un permiso propio; las rutas móviles mantienen su alcance.
+    if (await eventsRoute(req,res,reply)) return;
     if (await panelRoute(req, res, reply)) return;
     // Las rutas de equipos aplican el alcance del cliente antes de devolver datos o PDF.
     if (await equipmentRoute(req, res, reply)) return;
@@ -89,6 +91,7 @@ server.requestTimeout = 15000;
 server.headersTimeout = 10000;
 server.listen(Number(process.env.PORT || 3000), '0.0.0.0', () => console.log('Jaguar API listening'));
 for (const signal of ['SIGTERM', 'SIGINT']) process.on(signal, () => {
+  closeEventStreams();
   server.close(async () => { await pool.end(); process.exit(0); });
   setTimeout(() => process.exit(1), 10000).unref();
 });

@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams } from 'expo-router';
 import { File } from 'expo-file-system';
 import { useAuth, pdfDirectory } from '../../../lib/session';
-import { API_URL, errorMessage } from '../../../lib/api';
+import { useLiveQuery } from '../../../hooks/use-live-query';
+import { API_URL } from '../../../lib/api';
 import { type EquipmentDetail, type ProductDocument } from '../../../lib/equipment';
 import { colors, DemoNotice, ProductPhoto } from '../../../components/equipment-ui';
 
@@ -13,26 +14,12 @@ export default function EquipmentScreen() {
   const {id:rawId}=useLocalSearchParams<{id:string|string[]}>();
   const id=Array.isArray(rawId)?rawId[0]:rawId;
   const {authenticatedRequest,token,user}=useAuth();
-  const [result,setResult]=useState<{id:string;data:EquipmentDetail}|null>(null);
-  const [loading,setLoading]=useState(true);
-  const [error,setError]=useState('');
+  const load=useCallback(async()=>({id,data:await authenticatedRequest<EquipmentDetail>(`/equipment/${encodeURIComponent(id)}`)}),[id,authenticatedRequest]);
+  const {data:result,loading,error,refresh}=useLiveQuery(load);
+  const retry=()=>{void refresh();};
   const [opening,setOpening]=useState<string|null>(null);
   const active=useRef(true);
   useEffect(()=>{active.current=true;return ()=>{active.current=false;};},[]);
-  // La ficha se solicita por ID, pero el servidor vuelve a comprobar la asignación vigente.
-  useEffect(()=>{
-    let mounted=true;
-    authenticatedRequest<EquipmentDetail>(`/equipment/${encodeURIComponent(id)}`).then(data=>{
-      if(mounted)setResult({id,data});
-    }).catch(error=>{if(mounted)setError(errorMessage(error));})
-      .finally(()=>{if(mounted)setLoading(false);});
-    return ()=>{mounted=false;};
-  },[id,authenticatedRequest]);
-  async function retry() {
-    setLoading(true);setError('');
-    try{const data=await authenticatedRequest<EquipmentDetail>(`/equipment/${encodeURIComponent(id)}`);setResult({id,data});}
-    catch(error){setError(errorMessage(error));}finally{setLoading(false);}
-  }
   async function openDocument(doc:ProductDocument) {
     if(!user||!token||opening)return;
     setOpening(doc.id);
@@ -60,7 +47,7 @@ export default function EquipmentScreen() {
         :'Comprueba tu conexión y que sigues teniendo acceso al equipo.');
     } finally{setOpening(null);}
   }
-  const data=result?.id===id?result.data:null;
+  const data=!error && result?.id===id?result.data:null;
   if(!data)return <SafeAreaView style={styles.safe} edges={['bottom','left','right']}><StatusBar style="dark" />
     <View style={styles.state}>{loading?<ActivityIndicator color={colors.orange}/>:<><Text accessibilityRole="alert" style={styles.copy}>{error||'Equipo no disponible.'}</Text><Pressable style={styles.retry} onPress={retry}><Text style={styles.link}>Reintentar</Text></Pressable></>}</View>
   </SafeAreaView>;

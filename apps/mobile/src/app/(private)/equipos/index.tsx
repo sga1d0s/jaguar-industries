@@ -1,41 +1,43 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Feather from '@expo/vector-icons/Feather';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../../../lib/session';
-import { errorMessage } from '../../../lib/api';
-import { type Equipment, type EquipmentPage } from '../../../lib/equipment';
+import { useLiveQuery } from '../../../hooks/use-live-query';
+import { type EquipmentPage } from '../../../lib/equipment';
 import { colors, ProductPhoto } from '../../../components/equipment-ui';
 
 export default function EquipmentList() {
   const {mode}=useLocalSearchParams<{mode?:string}>();
   const documentsMode=mode==='documents';
   const {user,logout,authenticatedRequest}=useAuth();
-  const [items,setItems]=useState<Equipment[]>([]);
-  const [nextCursor,setNextCursor]=useState<string|null>(null);
-  const [loading,setLoading]=useState(true);
-  const [error,setError]=useState('');
   const [signingOut,setSigningOut]=useState(false);
-  // Primera carga: la API calcula el cliente a partir de la sesión, no de esta pantalla.
-  useEffect(()=>{
-    let mounted=true;
-    authenticatedRequest<EquipmentPage>('/equipment').then(page=>{
-      if(mounted){setItems(page.items);setNextCursor(page.nextCursor);}
-    }).catch(error=>{if(mounted)setError(errorMessage(error));})
-      .finally(()=>{if(mounted)setLoading(false);});
-    return ()=>{mounted=false;};
+  const visibleCount=useRef(0);
+  // Refresca tantas páginas como se hayan mostrado, sin perder las unidades de
+  // Cargar más. Sustituye la lista completa para retirar también asignaciones finalizadas.
+  const fetchList=useCallback(async()=>{
+    let page=await authenticatedRequest<EquipmentPage>('/equipment');
+    let items=page.items;
+    while(page.nextCursor && items.length<visibleCount.current) {
+      page=await authenticatedRequest<EquipmentPage>(`/equipment?cursor=${page.nextCursor}`);
+      items=[...items,...page.items];
+    }
+    return {items:[...new Map(items.map(item=>[item.id,item])).values()],nextCursor:page.nextCursor};
   },[authenticatedRequest]);
-  async function load(more=false) {
-    if(loading)return;
-    setLoading(true);setError('');
-    try {
-      const page=await authenticatedRequest<EquipmentPage>(`/equipment${more&&nextCursor?`?cursor=${nextCursor}`:''}`);
-      setItems(previous=>more?[...new Map([...previous,...page.items].map(item=>[item.id,item])).values()]:page.items);
-      setNextCursor(page.nextCursor);
-    } catch(error){setError(errorMessage(error));}
-    finally{setLoading(false);}
+  const {data,loading,error,refresh}=useLiveQuery<EquipmentPage>(fetchList);
+  const items=data?.items || [];
+  const nextCursor=data?.nextCursor || null;
+  useEffect(()=>{visibleCount.current=data?.items.length || 0;},[data]);
+  function load(more=false) {
+    if(!more || !nextCursor){void refresh();return;}
+    // Comparte el bloqueo con el refresco automático para evitar peticiones que
+    // se sobrescriban si se pulsa Cargar más durante una actualización.
+    void refresh(async()=>{
+      const page=await authenticatedRequest<EquipmentPage>(`/equipment?cursor=${nextCursor}`);
+      return {items:[...new Map([...items,...page.items].map(item=>[item.id,item])).values()],nextCursor:page.nextCursor};
+    });
   }
   async function signOut() {
     setSigningOut(true);
