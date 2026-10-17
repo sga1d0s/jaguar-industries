@@ -1,4 +1,4 @@
-# Generado por GitHub Actions. Fuente: 7bae8f11f9a00f9f9c8fd9ab05a96a1361463f60
+# Generado por GitHub Actions. Fuente: 2f591623e90d40d7466904f04fc06efbcd5f349d
 name: jaguar-industries
 
 x-logging: &logging
@@ -33,7 +33,7 @@ services:
     logging: *logging
 
   api:
-    image: ghcr.io/sga1d0s/jaguar-industries-api:sha-7bae8f11f9a00f9f9c8fd9ab05a96a1361463f60@sha256:6657c4bf87a0f48b5b09e9a7d2e5a9486390f2f374afedda0a7c2086aab79f74
+    image: ghcr.io/sga1d0s/jaguar-industries-api:sha-2f591623e90d40d7466904f04fc06efbcd5f349d@sha256:bd0a7965b8e6062d18344387865734cc3f82c371092ef9bbfd6b908620f1f7f7
     restart: unless-stopped
     init: true
     environment:
@@ -60,7 +60,7 @@ services:
 
   # Sirve el panel y reenvía /api a Node, conservando la dirección de la app móvil.
   web:
-    image: ghcr.io/sga1d0s/jaguar-industries-web:sha-7bae8f11f9a00f9f9c8fd9ab05a96a1361463f60@sha256:4dae680b6e0b9736905426383cdcc65d7120ffbdbfbca88f3acb4d059ad64a13
+    image: ghcr.io/sga1d0s/jaguar-industries-web:sha-2f591623e90d40d7466904f04fc06efbcd5f349d@sha256:c26c733be410019f2cace007f85e66d48303633afef2efa87428ae42828a2324
     restart: unless-stopped
     depends_on:
       api:
