@@ -4,6 +4,7 @@ import json
 import subprocess
 import tempfile
 import unittest
+import urllib.error
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
@@ -105,13 +106,22 @@ class ReleaseTests(unittest.TestCase):
                 response.__enter__.return_value.read.return_value = json.dumps(value).encode()
                 responses.append(response)
             return responses
-        with patch.object(verification.urllib.request, 'urlopen', side_effect=run([{'revision': sha}, {'revision': sha}, {'status': 'ok'}])):
+        with patch.object(verification.urllib.request, 'urlopen', side_effect=run([{'revision': sha}, {'revision': sha}, {'status': 'ok'}])) as request:
             verification.verify('https://panel.example.test', sha)
+            self.assertEqual(request.call_args.args[0].get_header('User-agent'), 'Jaguar-Deployment-Check/1.0')
         # La API antigua o PostgreSQL no disponible deben hacer fallar la comprobación.
         for values in [[{'revision': 'old'}, {'revision': sha}, {'status': 'ok'}], [{'revision': sha}, {'revision': sha}, {'status': 'down'}]]:
             with patch.object(verification.urllib.request, 'urlopen', side_effect=run(values)), patch.object(verification.time, 'monotonic', side_effect=[0, 0, 999]), patch.object(verification.time, 'sleep'):
                 with self.assertRaises(ValueError):
                     verification.verify('https://panel.example.test', sha)
+
+    def test_access_denied_fails_without_waiting_for_redeployment(self):
+        for status in (401,403):
+            error = urllib.error.HTTPError('https://panel.example.test/api/version', status, 'Denied', {}, None)
+            with patch.object(verification.urllib.request, 'urlopen', side_effect=error), patch.object(verification.time, 'sleep') as sleep:
+                with self.assertRaisesRegex(ValueError, str(status)):
+                    verification.verify('https://panel.example.test', 'a'*40)
+                sleep.assert_not_called()
 
 if __name__ == '__main__':
     unittest.main()
