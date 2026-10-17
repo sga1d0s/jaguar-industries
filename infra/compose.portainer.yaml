@@ -33,7 +33,7 @@ services:
     logging: *logging
 
   api:
-    image: ghcr.io/sga1d0s/jaguar-industries-api:sha-7e4ec103d552fcb6b9d4cc73ea21959c7110b3ea@sha256:de186ccf1921e1ac378ea7d0a0e68fd8abfde5acef29021afc2465c9bfccb7bf
+    image: ghcr.io/sga1d0s/jaguar-industries-api:sha-7e4ec103d552fcb6b9d4cc73ea21959c7110b3ea@sha256:6e93c816c68395ab0919972f31d6772167f8756fb693f62e8861d097f9a7c30b
     restart: unless-stopped
     init: true
     environment:
@@ -60,7 +60,7 @@ services:
 
   # Sirve el panel y reenvía /api a Node, conservando la dirección de la app móvil.
   web:
-    image: ghcr.io/sga1d0s/jaguar-industries-web:sha-7e4ec103d552fcb6b9d4cc73ea21959c7110b3ea@sha256:1510f86586ab770bff8e598c21a30902a5467c71f0556705a3e37e38d24236d2
+    image: ghcr.io/sga1d0s/jaguar-industries-web:sha-7e4ec103d552fcb6b9d4cc73ea21959c7110b3ea@sha256:c0d042f7cda3c01930eccc27250c944d14e2771cdeb94a43a083431e3893b4b8
     restart: unless-stopped
     depends_on:
       api:
