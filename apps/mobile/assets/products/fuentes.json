@@ -10,5 +10,59 @@
     "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/imagenes/productos/GARRAS_DE_ELEVACION_Y_ELEVADORES_MAGNETICOS/GARRAS_ARTICULADAS.png",
     "fecha_descarga": "2026-10-17",
     "sha256": "32ca5c7034c20b592fa64a52ec0506b1d36457b3bdc05b293970110c0a05defa"
+  },
+  {
+    "producto": "serie-650",
+    "tipo": "imagen",
+    "archivo": "serie-650.png",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/imagenes/productos/APARATOS_MANUALES/polea_diferencial_650_.png",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 1186509,
+    "sha256": "7a509b13e58a9342dbca11ca755847135af39d1b1737a8bfd10e4e60d91d24d6"
+  },
+  {
+    "producto": "serie-500",
+    "tipo": "imagen",
+    "archivo": "serie-500.png",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/imagenes/productos/APARATOS_MANUALES/CARROS_PORTAPOLEAS.png",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 766204,
+    "sha256": "2ff6e09b1313aa6d61d9081aa239dae645733f48f754e205d231158e7c2fe47c"
+  },
+  {
+    "producto": "modelo-bc",
+    "tipo": "imagen",
+    "archivo": "modelo-bc.png",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/imagenes/productos/APARATOS_MANUALES/PINZAS_DE_ANCLAJE.png",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 1333109,
+    "sha256": "f15df20ddeddbe12301ee03cc4bed14cf46d676e70bde0d0b5309140c153bc4e"
+  },
+  {
+    "producto": "serie-900",
+    "tipo": "imagen",
+    "archivo": "serie-900.png",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/imagenes/productos/APARATOS_MANUALES/palfer_nuevo.png",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 1876393,
+    "sha256": "17d8f3f51a06dd7186646f38761b90283abd25532f0a7a40b5f714bf98e3e728"
+  },
+  {
+    "producto": "modelo-em",
+    "tipo": "imagen",
+    "archivo": "modelo-em.png",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/imagenes/productos/GARRAS_DE_ELEVACION_Y_ELEVADORES_MAGNETICOS/ELEVADORES_MAGNETICOS.png",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 455944,
+    "sha256": "53ea3113937e0cb504fdade55875f5c014a4f2bfad3df9b384a5df4e94572977"
+  },
+  {
+    "producto": "modelo-gc",
+    "tipo": "imagen",
+    "archivo": "modelo-gc.png",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/imagenes/productos/ELEVACION_TRANSPORTE_Y_PESAJE/GATOS_CREMALLERA.png",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 1120111,
+    "sha256": "796fbd5861548bc0850b3f2680b476a13da5b87ed79ee8d8a40a59aadca5368f"
   }
 ]

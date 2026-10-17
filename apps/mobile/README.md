@@ -69,3 +69,7 @@ Tras iniciar o restaurar sesión se abre `/inicio`: perfil, resumen de unidades 
 El resumen usa `/equipment/summary`. Por compatibilidad con la API anterior, si esa ruta devuelve 404 se calcula desde la lista únicamente cuando cabe completa en una página; no se presentan recuentos parciales como totales. El error de actualización se muestra sin afirmar que exista modo offline.
 
 `/escanear` es una vista previa identificada explícitamente: no usa hardware NFC ni solicita permisos. Explica el gesto de lectura y permite abrir una unidad DEMO autorizada. No genera UID ni simula haber leído una etiqueta. La búsqueda normal sigue disponible desde esa pantalla.
+
+## Fotografías del catálogo
+
+La app incluye las fotos oficiales de las ocho familias actuales (630, BT, 650, 500, 900, BC, EM y GC), con fuentes y hashes en `assets/products/fuentes.json`. Lista y ficha comparten el selector `productPhoto` por código de modelo. Los modelos desconocidos muestran su código como marcador. Las imágenes están empaquetadas en la app: incorporar fotos nuevas requiere actualizar el APK/bundle instalado, aunque las asignaciones se consultan en la API y aparecen sin reinstalar.
