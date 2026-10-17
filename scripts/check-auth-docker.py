@@ -32,6 +32,8 @@ try:
         run(*seed,env=admin);run(*seed,env=admin)
     panel_migration=migration[:-1]+['scripts/migrate-panel.mjs','test@example.com']
     run(*panel_migration,env=admin);run(*panel_migration,env=admin)
+    access_migration=migration[:-1]+['scripts/migrate-client-access.mjs']
+    run(*access_migration,env=admin);run(*access_migration,env=admin)
     run('run','-d','--name',api,'--network-alias','api',*common,'-e','PGUSER=jaguar_app','-e','PGPASSWORD','--read-only','--cap-drop','ALL',image,env={'PGPASSWORD':app})
     for _ in range(30):
         try: run('exec',api,'node','-e',"fetch('http://localhost:3000/api/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"); break
@@ -103,12 +105,38 @@ try:
     const pdf=await call('documents/'+doc);assert.equal(pdf.headers.get('content-type'),'application/pdf');assert.equal(new TextDecoder().decode((await pdf.arrayBuffer()).slice(0,5)),'%PDF-');
     const create=async(path,body)=>{const response=await call(path,body);assert.equal(response.status,201,await response.clone().text());return response.json();};
     const client=await create('clients',{name:'Cliente integración'});
+    // Alta opcional: sin acceso sigue siendo válida; con acceso se crea una cuenta
+    // nueva, sin permisos internos. Los errores revierten también la organización.
+    const accountData={name:'Persona cliente',email:' NUEVO@example.com ',password:'a-long-test-password-123'};
+    const registered=await create('clients',{name:'Empresa con app',appUser:accountData});
+    const newToken=await login('nuevo@example.com');assert.ok(newToken);
+    for(const path of ['me','summary','clients','models','units'])assert.equal((await call(path,null,newToken)).status,403);
+    assert.equal((await call('clients',{name:'No permitido',appUser:accountData},newToken)).status,403);
+    const countClients=async()=>(await (await call('clients')).json()).items.length;
+    const beforeFailed=await countClients();
+    assert.equal((await call('clients',{name:'Duplicada',appUser:accountData})).status,409);
+    for(const appUser of [null,{}, {...accountData,email:'incorrecto'}, {...accountData,password:'short'}]) {
+      assert.equal((await call('clients',{name:'Inválida',appUser})).status,400);
+    }
+    assert.equal(await countClients(),beforeFailed);
+    const customerLogin=await fetch(base+'/auth/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:'nuevo@example.com',password:accountData.password})});
+    assert.equal(customerLogin.status,200);const customerSession=await customerLogin.json();
+    assert.equal(customerSession.user.name,'Persona cliente');assert.equal(customerSession.user.password_hash,undefined);
+    const customerGet=path=>fetch(base+path,{headers:{authorization:'Bearer '+customerSession.token}});
+    assert.equal((await (await customerGet('/equipment')).json()).items.length,0);
     const model=await create('models',{code:'TEST',name:'Modelo de prueba',category:'Pruebas',description:'Solo base temporal'});
     const variant=await create('variants',{modelId:model.id,reference:'TEST-1',name:'Variante de prueba',specifications:[{label:'Carga',value:'100 kg'}]});
     assert.equal((await call('variants',{modelId:model.id,reference:'TEST-1',name:'Duplicada',specifications:[]})).status,409);
     assert.equal((await call('clients',{name:''})).status,400);
     assert.equal((await call('units',{variantId:'invalid',serialNumber:'X'})).status,400);
     const unit=await create('units',{variantId:variant.id,serialNumber:'REAL-TEST-1'});
+    const customerUnit=await create('units',{variantId:variant.id,serialNumber:'CUSTOMER-APP-1'});
+    const customerRental=await create('assignments',{equipmentId:customerUnit.id,clientId:registered.id,kind:'rental'});
+    const accessible=await (await customerGet('/equipment')).json();assert.equal(accessible.items.length,1);assert.equal(accessible.items[0].id,customerUnit.id);
+    assert.equal((await customerGet('/equipment/'+customerUnit.id)).status,200);
+    assert.equal((await customerGet('/equipment/'+(await (await fetch(base+'/equipment',{headers:{authorization:'Bearer '+customer}})).json()).items[0].id)).status,404);
+    await create('assignments/'+customerRental.id+'/end',{});
+    assert.equal((await customerGet('/equipment/'+customerUnit.id)).status,404);
     const assignments=await Promise.all([call('assignments',{equipmentId:unit.id,clientId:client.id,kind:'rental'}),call('assignments',{equipmentId:unit.id,clientId:client.id,kind:'sale'})]);
     assert.deepEqual(assignments.map(r=>r.status).sort(),[201,400]);
     // Nueva unidad con alquiler completo, devolución y venta posterior.
@@ -142,7 +170,11 @@ try:
     const user=(await pool.query("SELECT id FROM users WHERE email='other@example.com'")).rows[0];
     await assert.rejects(pool.query('INSERT INTO panel_operators(user_id) VALUES($1)',[user.id]));
     await assert.rejects(pool.query('DELETE FROM panel_audit'));
-    assert.equal((await pool.query('SELECT count(*)::int AS n FROM panel_audit')).rows[0].n,11);
+    await assert.rejects(pool.query('INSERT INTO panel_operators(user_id) SELECT id FROM users LIMIT 1'));
+    const account=(await pool.query("SELECT password_hash FROM users WHERE email='nuevo@example.com'")).rows[0];
+    assert.notEqual(account.password_hash,accountData.password);
+    assert.equal((await pool.query("SELECT 1 FROM panel_operators p JOIN users u ON u.id=p.user_id WHERE u.email='nuevo@example.com'")).rowCount,0);
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM panel_audit')).rows[0].n,15);
     await pool.end(); console.log('OK: panel aislado, altas, validación, auditoría, asignación concurrente, devolución y propiedad de venta');
     """
     print(run('exec',api,'node','--input-type=module','-e',panel_code).strip())
@@ -171,7 +203,7 @@ try:
     const a=models.find(m=>m.code==='630'),b=models.find(m=>m.code==='650');
     assert.equal(a.documents.find(d=>d.kind==='manual').id,b.documents.find(d=>d.kind==='manual').id);
     assert.equal(b.name,'Nombre ajustado en Jaguar');
-    const summary=await (await fetch(base+'/panel/summary',{headers})).json();assert.equal(summary.all_units,6);
+    const summary=await (await fetch(base+'/panel/summary',{headers})).json();assert.equal(summary.all_units,7);
     const {pool}=await import('./db.mjs');assert.equal((await pool.query('SELECT count(*)::int AS n FROM product_documents')).rows[0].n,23);
     await pool.end();console.log('OK: catálogo repetible, 55 referencias, PDF íntegros, manual compartido y ediciones conservadas; sin unidades nuevas');
     """

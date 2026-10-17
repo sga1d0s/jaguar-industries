@@ -105,7 +105,7 @@ function filteredContent() {
   if (page==='units') return unitTable(data.units.filter(u=>matches(u.serial_number,u.reference,u.variant_name,u.client_name)));
   if (page==='clients') {
     const clients=data.clients.filter(c=>matches(c.name));
-    return clients.length?`<div class="client-grid">${clients.map(c=>`<article class="client-card"><span class="client-icon">${esc(c.name.slice(0,1))}</span><div><h2>${esc(c.name)}</h2>${c.is_demo?badge('DEMO','demo'):badge('Cliente')}<p class="muted">${data.units.filter(u=>u.client_id===c.id).length} unidades asignadas</p></div></article>`).join('')}</div>`:'<div class="empty"><h3>No hay clientes que mostrar</h3><p>Da de alta el primer cliente o cambia la búsqueda.</p></div>';
+    return clients.length?`<div class="client-grid">${clients.map(c=>`<article class="client-card"><span class="client-icon">${esc(c.name.slice(0,1))}</span><div><h2>${esc(c.name)}</h2>${c.is_demo?badge('DEMO','demo'):badge('Cliente')}<p class="muted">${c.app_users || 0} usuarios con acceso a la app</p><p class="muted">${data.units.filter(u=>u.client_id===c.id).length} unidades asignadas</p></div></article>`).join('')}</div>`:'<div class="empty"><h3>No hay clientes que mostrar</h3><p>Da de alta el primer cliente o cambia la búsqueda.</p></div>';
   }
   const models=data.models.filter(m=>matches(m.code,m.name,m.category,...m.variants.map(v=>v.reference)));
   return models.length?`<div class="model-grid">${models.map(m=>`<article class="model-card"><div class="model-image">${productImages[m.code]?`<img loading="lazy" src="/assets/${esc(productImages[m.code])}" alt="${esc(m.name)}">`:'<span aria-hidden="true">◇</span>'}<span class="model-code">${esc(m.code)}</span></div><div class="model-body"><p class="eyebrow">${esc(m.category)}</p><h2>${esc(m.name)}</h2><p class="muted">${esc(m.description)}</p><h3>Referencias</h3>${m.variants.map(v=>`<details><summary><strong>${esc(v.reference)}</strong> · ${esc(v.name)}</summary><dl>${v.specifications.map(s=>`<div><dt>${esc(s.label)}</dt><dd>${esc(s.value)}</dd></div>`).join('')}</dl></details>`).join('') || '<p class="muted">Sin referencias todavía.</p>'}<button class="text-button" data-variant="${m.id}">＋ Añadir referencia</button><h3>Documentación común</h3><div class="documents">${m.documents.map(d=>`<button data-document="${d.id}"><span>↧</span>${esc(d.title)} <small>${esc(d.language.toUpperCase())} · PDF</small></button>`).join('') || '<p class="muted">Sin documentos vinculados.</p>'}</div></div></article>`).join('')}</div>`:'<div class="empty"><h3>No hay modelos que mostrar</h3><p>Añade un modelo o cambia la búsqueda.</p></div>';
@@ -114,7 +114,7 @@ function render() {
   if (!user) return;
   if (page==='overview') shell(overview());
   else {
-    const notes={units:'Cada unidad tiene su propia serie y asignación.',models:'Características y documentos compartidos por todas las unidades del modelo.',clients:'Organizaciones destinatarias de ventas y alquileres. El alta no crea cuentas de acceso.'};
+    const notes={units:'Cada unidad tiene su propia serie y asignación.',models:'Características y documentos compartidos por todas las unidades del modelo.',clients:'Organizaciones destinatarias de ventas y alquileres. Puedes crear un acceso a la app al dar de alta la empresa.'};
     const actions={units:['unit','Registrar unidad'],models:['model','Añadir modelo'],clients:['client','Añadir cliente']};
     shell(`<div class="page-heading"><div><p class="eyebrow">GESTIÓN JAGUAR</p><h1>${titles[page]}</h1><p class="muted">${notes[page]}</p></div><button class="primary" data-new="${actions[page][0]}">＋ ${actions[page][1]}</button></div><label class="search"><span>Buscar en ${titles[page].toLowerCase()}</span><input id="search" type="search" value="${esc(search)}" placeholder="${page==='units'?'Serie, referencia o cliente…':'Escribe para filtrar…'}"></label><section id="results" class="${page==='units'?'panel':''}">${filteredContent()}</section>`);
     document.querySelector('#search').oninput=event=>{search=event.target.value; document.querySelector('#results').innerHTML=filteredContent(); bindContent();};
@@ -143,7 +143,8 @@ const field=(label,name,max=200,extra='')=>`<label>${label}<input name="${name}"
 // se guarda y el servidor confirma datos y auditoría juntos antes de refrescar la vista.
 function openForm(kind,target) {
   const definitions={
-    client:['Nuevo cliente','El alta registra la organización. Sus usuarios y permisos de consulta se configuran por separado.',field('Nombre de la organización','name')],
+    client:['Nuevo cliente','Registra la empresa y, si lo necesitas, su primer usuario. Este acceso no permite entrar en el panel interno de Jaguar.',field('Nombre de la empresa','name')+
+      '<label class="access-toggle"><input type="checkbox" name="createAppAccess">Crear acceso a la app</label><fieldset class="app-access" hidden disabled><legend>Primer usuario de la empresa</legend>'+field('Nombre de la persona','userName',200,'autocomplete="name"')+field('Email de acceso','userEmail',254,'type="email" autocomplete="off" autocapitalize="none"')+field('Contraseña inicial','userPassword',1024,'type="password" minlength="12" autocomplete="new-password"')+'<small>Mínimo 12 caracteres. Solo se guarda el hash de la contraseña; no se podrá consultar después.</small></fieldset>'],
     model:['Nuevo modelo','La documentación común se vincula al modelo; sus referencias definen las características.',field('Código del modelo','code',50)+field('Nombre','name')+field('Categoría','category')+'<label>Descripción<textarea name="description" required maxlength="2000" rows="3"></textarea></label>'],
     variant:['Nueva referencia','Añade una variante al modelo seleccionado.',field('Referencia comercial','reference',80)+field('Nombre de la variante','name')+'<label>Características<textarea name="specifications" rows="5" placeholder="Capacidad: 1.000 kg&#10;Peso: 11 kg"></textarea><small>Una por línea, con formato Etiqueta: valor. Hasta 30.</small></label>'],
     unit:['Registrar unidad','La unidad se registra como propiedad de Jaguar, sin etiqueta NFC hasta su vinculación física.',`<label>Referencia del catálogo<select name="variantId" required><option value="">Selecciona una referencia</option>${data.models.flatMap(m=>m.variants.map(v=>`<option value="${v.id}">${esc(v.reference)} · ${esc(v.name)}</option>`)).join('')}</select></label>`+field('Número de serie','serialNumber',150)],
@@ -156,6 +157,12 @@ function openForm(kind,target) {
   dialog.innerHTML=`<form><div class="dialog-heading"><h2>${title}</h2><button type="button" id="close-dialog" aria-label="Cerrar">×</button></div><p class="muted">${note}</p>${unit?`<p><strong>${esc(unit.variant_name)}</strong><br>Serie: ${esc(unit.serial_number)}</p>`:''}${fields}<p class="error" role="alert"></p><div class="dialog-actions"><button type="button" id="cancel-dialog">Cancelar</button><button type="submit" class="primary">${kind==='end'?'Finalizar alquiler':'Guardar'}</button></div></form>`;
   document.body.append(dialog); dialog.showModal();
   dialog.querySelector('input,select,textarea')?.focus();
+  // Los campos de acceso solo son obligatorios y se envían si se activa la opción.
+  const accessToggle=dialog.querySelector('[name="createAppAccess"]');
+  if (accessToggle) accessToggle.onchange=()=>{
+    const fields=dialog.querySelector('.app-access');
+    fields.hidden=!accessToggle.checked; fields.disabled=!accessToggle.checked;
+  };
   const close=()=>{if(!pending)dialog.close();};
   dialog.querySelector('#close-dialog').onclick=close; dialog.querySelector('#cancel-dialog').onclick=close;
   dialog.oncancel=event=>{if(pending)event.preventDefault();}; dialog.onclose=()=>dialog.remove();
@@ -165,6 +172,10 @@ function openForm(kind,target) {
     try {
       if(kind==='variant') { input.modelId=target; input.specifications=input.specifications.split('\n').filter(s=>s.trim()).map(line=>{ const index=line.indexOf(':'); if(index<1 || !line.slice(index+1).trim())throw new Error('Usa Etiqueta: valor en cada característica.'); return {label:line.slice(0,index).trim(),value:line.slice(index+1).trim()}; }); }
       if(kind==='assignment')input.equipmentId=target;
+      if(kind==='client') {
+        if(input.createAppAccess)input.appUser={name:input.userName,email:input.userEmail,password:input.userPassword};
+        delete input.createAppAccess; delete input.userName; delete input.userEmail; delete input.userPassword;
+      }
       pending=true; dialog.querySelectorAll('button').forEach(b=>b.disabled=true);
       const endpoint={client:'clients',model:'models',variant:'variants',unit:'units',assignment:'assignments',end:`assignments/${target}/end`}[kind];
       await api(`/panel/${endpoint}`,{method:'POST',body:JSON.stringify(input)});

@@ -1,4 +1,5 @@
 import { pool } from './db.mjs';
+import { hashPassword } from './auth.mjs';
 import { sessionUser, documentRoot } from './equipment.mjs';
 import { resolve, sep } from 'node:path';
 import { open } from 'node:fs/promises';
@@ -48,7 +49,9 @@ export async function panelRoute(req,res,reply) {
       reply(res,200,rows[0]); return true;
     }
     const lists={
-      clients: `SELECT id,name,is_demo FROM organizations WHERE kind='client' AND ($1::uuid IS NULL OR id>$1) ORDER BY id LIMIT 51`,
+      clients: `SELECT id,name,is_demo,
+        (SELECT count(*)::int FROM memberships m JOIN users u ON u.id=m.user_id
+          WHERE m.organization_id=organizations.id AND u.active) AS app_users FROM organizations WHERE kind='client' AND ($1::uuid IS NULL OR id>$1) ORDER BY id LIMIT 51`,
       models: `SELECT m.id,m.code,m.name,m.category,m.description,
         COALESCE((SELECT jsonb_agg(jsonb_build_object('id',v.id,'reference',v.reference,'name',v.name,'specifications',v.specifications) ORDER BY v.reference)
           FROM product_variants v WHERE v.model_id=m.id),'[]') AS variants,
@@ -90,6 +93,17 @@ export async function panelRoute(req,res,reply) {
       reply(res,404,{error:'Ruta no disponible.'}); return true;
     }
     const input=await body(req);
+    // Validamos y calculamos el hash antes de abrir la transacción. Un correo ya
+    // existente nunca se reutiliza ni modifica: evitamos vincular cuentas ajenas.
+    let appUser;
+    if (section==='clients' && input.appUser!==undefined) {
+      const value=input.appUser;
+      if (!value || typeof value!=='object' || Array.isArray(value)) throw new InputError('Revisa el usuario de acceso.');
+      const email=text(value.email,254).toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new InputError('Introduce un email válido.');
+      if (typeof value.password!=='string' || value.password.length<12 || Buffer.byteLength(value.password)>1024) throw new InputError('La contraseña debe tener al menos 12 caracteres y como máximo 1024 bytes.');
+      appUser={name:text(value.name),email,passwordHash:await hashPassword(value.password)};
+    }
     // Datos y registro de auditoría se confirman juntos. Bloquear la unidad evita
     // vender/alquilar dos veces cuando llegan formularios simultáneos.
     const client=await pool.connect();
@@ -98,6 +112,13 @@ export async function panelRoute(req,res,reply) {
       let result, action=section;
       if (section==='clients') {
         result=(await client.query("INSERT INTO organizations(name) VALUES($1) RETURNING id",[text(input.name)])).rows[0];
+        if (appUser) {
+          // Empresa, cuenta y membresía se guardan juntas. No se escribe nunca en
+          // panel_operators: este usuario solo consulta sus equipos desde la app.
+          const account=(await client.query('INSERT INTO users(name,email,password_hash) VALUES($1,$2,$3) RETURNING id',
+            [appUser.name,appUser.email,appUser.passwordHash])).rows[0];
+          await client.query('INSERT INTO memberships(user_id,organization_id) VALUES($1,$2)',[account.id,result.id]);
+        }
       } else if (section==='models') {
         result=(await client.query('INSERT INTO product_models(code,name,category,description) VALUES($1,$2,$3,$4) RETURNING id',
           [text(input.code,50),text(input.name),text(input.category),text(input.description,2000)])).rows[0];
@@ -148,7 +169,7 @@ export async function panelRoute(req,res,reply) {
     finally { client.release(); }
   } catch(error) {
     if (error instanceof InputError) reply(res,400,{error:error.message});
-    else if (error.code==='23505') reply(res,409,{error:'Ya existe ese código, referencia o número de serie.'});
+    else if (error.code==='23505') reply(res,409,{error:url.pathname==='/api/panel/clients'?'Ya existe una cuenta con ese email. No se ha creado el cliente ni se ha modificado la cuenta existente.':'Ya existe ese código, referencia o número de serie.'});
     else if (error.code==='23503') reply(res,400,{error:'El modelo, referencia o cliente seleccionado ya no está disponible.'});
     else throw error;
   }

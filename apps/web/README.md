@@ -4,7 +4,7 @@ Frontal sin dependencias de ejecución: HTML, CSS y JavaScript de módulos. Ngin
 
 Incluye login con cuenta existente y permiso interno independiente, resumen, alta de clientes, modelos y referencias con características, descarga autenticada de los documentos comunes existentes, registro de unidades, venta, alquiler y finalización de alquiler. Las operaciones guardan un registro de auditoría. Las unidades DEMO aparecen identificadas y son de consulta; no cuentan como actividad real.
 
-El alta de cliente crea una organización, no una cuenta ni una membresía. La carga de nuevos documentos, edición/borrado, usuarios, vinculación NFC y gestión de incidencias quedan fuera de esta primera entrega. Una venta transfiere la propiedad y no se anula desde este panel; el alquiler permite devolver la unidad conservando su histórico.
+El alta de cliente crea una empresa y permite activar «Crear acceso a la app»: nombre de la persona, email y contraseña inicial (mínimo 12 caracteres). Empresa, usuario y membresía se guardan en una sola transacción. Un email existente se rechaza sin modificar su cuenta ni crear la empresa. El nuevo usuario no recibe permisos del panel; solo consulta los equipos asignados a su empresa. Las tarjetas de clientes muestran el número de usuarios activos con acceso. La carga de nuevos documentos, edición/borrado, añadir usuarios a clientes existentes, invitaciones, vinculación NFC y gestión de incidencias quedan fuera de esta entrega. Una venta transfiere la propiedad y no se anula desde este panel; el alquiler permite devolver la unidad conservando su histórico.
 
 ## Desarrollo
 
@@ -52,3 +52,14 @@ La prueba crea y elimina su PostgreSQL y red temporales. Comprueba autorización
 Se han preparado seis familias adicionales con 55 referencias, fotografías, ficha, manual y declaración CE. Para desplegar esta ampliación, usar `API_IMAGE=jaguar-api:catalog-check` y `WEB_IMAGE=jaguar-web:catalog-check` (imágenes construidas en el NAS), actualizar sin re-pull y ejecutar `python3 scripts/setup-catalog-nas.py`. Después recargar Catálogo. No hay cambios en Compose, Cloudflare, permisos o APK. Ver [fuentes y proceso de carga](../../docs/referencias/productos/README.md).
 
 Los clientes DEMO también pueden seleccionarse al asignar una unidad gestionable, identificados como DEMO tanto en el selector como en el inventario. Los alquileres a esos clientes no se cuentan en el indicador interno de alquileres reales. El acceso en la app continúa dependiendo de la membresía y la asignación vigente. El nombre o prefijo de serie `DEMO-` por sí solo no cambia el campo de demostración de la unidad; las unidades inicialmente cargadas con `is_demo=true` conservan su condición de consulta.
+
+## Activar altas con acceso a la app en una base existente
+
+Antes de desplegar esta versión de API, aplicar los permisos aditivos con copia previa:
+
+```sh
+docker build -t jaguar-api:client-access-check -f apps/api/Dockerfile .
+python3 scripts/setup-client-access-nas.py --image jaguar-api:client-access-check
+```
+
+Después integrar los cambios mediante dev → main para publicar API y web por el CI/CD existente. No es necesario modificar API_IMAGE/WEB_IMAGE en el stack de la rama deploy/production. La migración no crea cuentas ni concede acceso interno. No hace falta recompilar las apps móviles.

@@ -35,3 +35,9 @@ El contexto de construcción cambia a la raíz del repo: `docker build -f apps/a
 El script de pruebas también comprueba dos clientes aislados, repetición de migración/carga, lista vacía tras retirar una membresía y descarga de los PDF originales; puede elegirse imagen con `JAGUAR_TEST_IMAGE`.
 
 `GET /api/equipment/summary` devuelve total, ventas, alquileres y unidades DEMO usando el mismo alcance de asignación/membresía. Permite alimentar los indicadores de Home sin descargar todas las páginas. No requiere otra migración. Imagen de comprobación: `jaguar-api:home-check`; la versión anterior sigue siendo compatible con esta primera Home para cuentas cuya lista cabe en una página.
+
+## Alta de cliente con usuario de app
+
+`POST /api/panel/clients` acepta `{name, appUser?: {name,email,password}}`. Solo operadores internos pueden ejecutarlo. El correo se normaliza a minúsculas; la contraseña exige 12 caracteres y un máximo de 1024 bytes y se guarda con scrypt. Organización, usuario, membresía y auditoría se confirman juntos. Un email duplicado devuelve 409 y revierte la organización; no se reutilizan ni alteran cuentas existentes. La cuenta creada no recibe `panel_operators`.
+
+Bases existentes: ejecutar `node scripts/migrate-client-access.mjs` con el rol propietario antes de desplegar, preferiblemente mediante `scripts/setup-client-access-nas.py` con copia previa. Solo añade INSERT sobre las columnas necesarias de users y memberships; no concede UPDATE de usuarios ni escritura sobre panel_operators. El GET de clientes incluye app_users (usuarios activos vinculados).

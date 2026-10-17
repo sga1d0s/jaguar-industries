@@ -21,4 +21,12 @@ export async function migratePanel(client) {
     GRANT UPDATE(owner_organization_id) ON equipment TO jaguar_app;
     GRANT UPDATE(ends_at) ON equipment_assignments TO jaguar_app;
   `);
+  await migrateClientAccess(client);
+}
+
+// Permite altas desde el panel sin dar permiso de actualizar cuentas existentes
+// ni de conceder acceso interno. También puede ejecutarse sobre una DB ya creada.
+export async function migrateClientAccess(client) {
+  await client.query(`GRANT INSERT(name,email,password_hash) ON users TO jaguar_app;
+    GRANT INSERT(user_id,organization_id) ON memberships TO jaguar_app;`);
 }
