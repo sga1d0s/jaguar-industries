@@ -158,3 +158,15 @@ La comprobación posterior confirma que el stack ya ejecuta `jaguar-api:equipmen
 El usuario confirma que ya ha instalado el APK nuevo copiado a Descargas. No se ha confirmado todavía de forma explícita que visualice las dos unidades DEMO, entre en sus fichas y abra los PDF desde el visor del teléfono. No confundir la instalación confirmada con esas comprobaciones funcionales pendientes. La API pública actualizada devuelve 200 en /api/ready y 401 sin sesión tanto en equipos como en descarga de documentos.
 
 El usuario confirma finalmente, en respuesta a la instalación del APK y al redespliegue de Portainer, que ambos pasos están completados y la nueva versión está funcionando. Queda confirmada por el usuario la puesta en marcha de esta entrega en su Android. No se ha recibido una confirmación específica de apertura de cada PDF; las descargas autorizadas y el aislamiento entre clientes sí se verificaron en las pruebas de integración.
+
+## Diseño de Home y NFC sin etiquetas — 17 de octubre de 2026
+
+El usuario aún no tiene etiquetas NFC y pidió diseñar la pantalla y una Home inspirada en la referencia aportada. Se implementó `/inicio` como destino tras login/restauración: perfil real, resumen de equipos/en propiedad/en alquiler, nueve accesos con iconos Feather y colores Jaguar. Mis equipos y Documentación abren el recorrido existente; Avisos, Alquileres, Inspecciones, Certificados individuales y Sin conexión están marcados Próximamente y explican su propósito. Ayuda muestra una guía. Se añadió un botón para volver a Inicio desde la lista y un modo Documentación para seleccionar unidad.
+
+`/escanear` muestra una vista previa con guía visual de acercamiento, pasos del recorrido, indicación explícita de que no lee etiquetas y acceso a una ficha de unidad DEMO autorizada. No hay lector NFC, permisos nuevos, UID simulado ni vinculaciones físicas.
+
+Se añadió GET /api/equipment/summary con el mismo alcance por usuario/membresía y un fallback en la Home a la lista anterior solo si cabe en una página completa. Así se puede revisar con `equipment-check` actual sin cambiar el backend; no se muestran totales parciales ni estados/alertas inventados. No hay cambios de esquema ni de datos reales. Imagen construida para pruebas `jaguar-api:home-check`, no desplegada automáticamente.
+
+Lint y TypeScript pasan; APK Android compilado localmente en 49s y firma verificada; bundle iOS exportado sin compilación nativa iOS. El APK (31.240.819 bytes) se copió por USB a `/sdcard/Download/Jaguar-home-nfc-20261017.apk`. No se ha instalado automáticamente ni se ha desinstalado nada. Pendiente instalarlo y revisar visualmente el diseño en el teléfono. No se ha hecho commit ni push. Se conserva el criterio de comentarios en español.
+
+Las pruebas de integración de `home-check` finalizaron correctamente: resumen 2 equipos/1 venta/1 alquiler/2 DEMO por cliente, resumen vacío tras revocar membresía y regresiones de autenticación, fichas y PDF aislados. Contenedor y red temporales eliminados. La API real continúa con su versión previa; no hace falta cambiar Portainer para revisar la Home con los dos equipos actuales.

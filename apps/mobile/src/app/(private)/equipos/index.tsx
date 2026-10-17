@@ -2,13 +2,16 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { router } from 'expo-router';
+import Feather from '@expo/vector-icons/Feather';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../../../lib/session';
 import { errorMessage } from '../../../lib/api';
 import { type Equipment, type EquipmentPage } from '../../../lib/equipment';
 import { colors, ProductPhoto } from '../../../components/equipment-ui';
 
 export default function EquipmentList() {
+  const {mode}=useLocalSearchParams<{mode?:string}>();
+  const documentsMode=mode==='documents';
   const {user,logout,authenticatedRequest}=useAuth();
   const [items,setItems]=useState<Equipment[]>([]);
   const [nextCursor,setNextCursor]=useState<string|null>(null);
@@ -39,17 +42,17 @@ export default function EquipmentList() {
     try{await logout();}catch{Alert.alert('No se pudo cerrar la sesión','Comprueba tu conexión y vuelve a intentarlo.');setSigningOut(false);}
   }
   return <SafeAreaView style={styles.safe} edges={['top','left','right']}><StatusBar style="light" />
-    <View style={styles.header}><View style={{flex:1}}><Text style={styles.brand}>JAGUAR</Text><Text style={styles.greeting}>Hola, {user?.name}</Text></View>
+    <View style={styles.header}><Pressable accessibilityRole="button" accessibilityLabel="Volver a Inicio" hitSlop={12} onPress={()=>router.navigate('/inicio')}><Feather name="arrow-left" size={23} color="white"/></Pressable><View style={{flex:1}}><Text style={styles.brand}>JAGUAR</Text><Text style={styles.greeting}>Hola, {user?.name}</Text></View>
       <Pressable accessibilityRole="button" onPress={signOut} disabled={signingOut} style={styles.logout}><Text style={styles.logoutText}>{signingOut?'Saliendo…':'Cerrar sesión'}</Text></Pressable></View>
     <FlatList data={items} keyExtractor={item=>item.id} contentContainerStyle={styles.content}
       refreshing={loading&&items.length>0} onRefresh={()=>load()}
-      ListHeaderComponent={<View><Text style={styles.title}>Mis equipos</Text><Text style={styles.subtitle}>Características y documentación de tus equipos.</Text>
+      ListHeaderComponent={<View><Text style={styles.title}>{documentsMode?'Documentación':'Mis equipos'}</Text><Text style={styles.subtitle}>{documentsMode?'Selecciona un equipo para abrir sus fichas, manuales y declaración CE.':'Características y documentación de tus equipos.'}</Text>
         {items.some(item=>item.isDemo)&&<View style={styles.demo}><Text style={styles.demoText}>Estás viendo unidades de demostración. Las asignaciones y números de serie son ficticios.</Text></View>}
         {!!error&&<View style={styles.error}><Text accessibilityRole="alert" style={styles.errorText}>{error}</Text><Pressable onPress={()=>load()} disabled={loading}><Text style={styles.link}>Reintentar</Text></Pressable></View>}
         {items.length>0&&<Text style={styles.count}>{items.length} equipos{nextCursor?' cargados':''}</Text>}</View>}
       renderItem={({item})=><Pressable accessibilityRole="button" accessibilityLabel={`Abrir ${item.modelName}, ${item.reference}`} style={styles.card} onPress={()=>router.push({pathname:'/equipos/[id]',params:{id:item.id}})}>
         <ProductPhoto code={item.modelCode} /><View style={styles.cardBody}><View style={styles.badges}><Text style={styles.badge}>{item.assignmentKind==='sale'?'VENTA':'ALQUILER'}</Text>{item.isDemo&&<Text style={styles.demoBadge}>DEMO</Text>}</View>
-          <Text style={styles.name}>{item.modelName}</Text><Text style={styles.variant}>{item.variantName}</Text><Text numberOfLines={1} style={styles.serial}>N.º {item.serialNumber}</Text><Text style={styles.link}>Ver ficha →</Text></View>
+          <Text style={styles.name}>{item.modelName}</Text><Text style={styles.variant}>{item.variantName}</Text><Text numberOfLines={1} style={styles.serial}>N.º {item.serialNumber}</Text><Text style={styles.link}>{documentsMode?'Ficha y documentos →':'Ver ficha →'}</Text></View>
       </Pressable>}
       ListEmptyComponent={loading?<ActivityIndicator style={{marginTop:40}} color={colors.orange} />:!error?<View style={styles.empty}><Text style={styles.emptyTitle}>Todavía no tienes equipos asignados</Text><Text style={styles.subtitle}>Cuando Jaguar te asigne una unidad, aparecerá aquí con su documentación.</Text></View>:undefined}
       ListFooterComponent={nextCursor?<Pressable style={styles.more} onPress={()=>load(true)} disabled={loading}><Text style={styles.link}>{loading?'Cargando…':'Cargar más equipos'}</Text></Pressable>:<View style={{height:24}} />}

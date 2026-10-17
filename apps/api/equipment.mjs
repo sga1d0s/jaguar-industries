@@ -46,6 +46,16 @@ export async function equipmentRoute(req, res, reply) {
   if (req.method !== 'GET') { reply(res,405,{error:'Método no permitido.'}); return true; }
   const user = await sessionUser(req);
   if (!user) { reply(res,401,{error:'La sesión ha caducado. Vuelve a entrar.'}); return true; }
+  if (url.pathname === '/api/equipment/summary') {
+    // Cuenta todas las unidades autorizadas, sin depender de la página que cargue el móvil.
+    // No se inventan estados de servicio o alertas: aún no existen inspecciones operativas.
+    const {rows}=await pool.query(`SELECT count(*)::integer AS total,
+      count(*) FILTER (WHERE assignment.kind='sale')::integer AS sales,
+      count(*) FILTER (WHERE assignment.kind='rental')::integer AS rentals,
+      count(*) FILTER (WHERE e.is_demo)::integer AS demos ${scope}`,[user.id]);
+    reply(res,200,rows[0]);
+    return true;
+  }
   if (url.pathname === '/api/equipment') {
     const cursor = url.searchParams.get('cursor');
     if (cursor && !uuid.test(cursor)) { reply(res,400,{error:'Cursor no válido.'}); return true; }

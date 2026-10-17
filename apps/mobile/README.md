@@ -61,3 +61,11 @@ Tras entrar se abre Mis equipos. La lista incluye foto del modelo, referencia, n
 Los PDF se descargan con la cabecera de sesión a una caché temporal separada por cuenta y se abren con el visor nativo. Hace falta un visor PDF instalado en Android. La caché se limpia al cerrar o invalidar la sesión; no hay todavía biblioteca offline. No se ponen tokens en URL ni se abren enlaces públicos que eviten los permisos. Una sesión caducada vuelve al login; un fallo de red permite reintentar.
 
 La API necesita la migración y la nueva imagen descritas en `apps/api/README.md`. Para preparar el APK tras añadir una dependencia nativa, ejecutar Expo prebuild y luego `pnpm android:apk`. El APK local sigue usando firma de depuración, que puede no coincidir con el APK EAS instalado previamente: no desinstalar la aplicación existente sin decidir antes si se quieren conservar sus datos.
+
+## Home y vista previa NFC
+
+Tras iniciar o restaurar sesión se abre `/inicio`: perfil, resumen de unidades en propiedad/alquiler y nueve accesos. Mis equipos y Documentación usan las rutas existentes; los módulos sin implementar se marcan Próximamente. No se muestran recuentos inventados de avisos ni de estado operativo.
+
+El resumen usa `/equipment/summary`. Por compatibilidad con la API anterior, si esa ruta devuelve 404 se calcula desde la lista únicamente cuando cabe completa en una página; no se presentan recuentos parciales como totales. El error de actualización se muestra sin afirmar que exista modo offline.
+
+`/escanear` es una vista previa identificada explícitamente: no usa hardware NFC ni solicita permisos. Explica el gesto de lectura y permite abrir una unidad DEMO autorizada. No genera UID ni simula haber leído una etiqueta. La búsqueda normal sigue disponible desde esa pantalla.

@@ -25,7 +25,7 @@ export default function App() {
     finally{setBusy(false);}
   }
   // Tras el login o la restauración, sustituye la ruta para que Atrás no vuelva al formulario.
-  if(auth.ready && auth.user)return <Redirect href="/equipos" />;
+  if(auth.ready && auth.user)return <Redirect href="/inicio" />;
   return <SafeAreaView style={styles.safe}><StatusBar style="light" />
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">

@@ -33,3 +33,5 @@ No se acepta un cliente enviado por el móvil para dar acceso: la consulta parte
 El contexto de construcción cambia a la raíz del repo: `docker build -f apps/api/Dockerfile -t jaguar-api:equipment-check .`. La lista de exclusión evita enviar dependencias, artefactos móviles y credenciales. La variable `DOCUMENTS_ROOT` permite cambiar la ubicación del almacén en una evolución posterior. No se ha implementado subida de documentación, panel administrativo ni sincronización offline.
 
 El script de pruebas también comprueba dos clientes aislados, repetición de migración/carga, lista vacía tras retirar una membresía y descarga de los PDF originales; puede elegirse imagen con `JAGUAR_TEST_IMAGE`.
+
+`GET /api/equipment/summary` devuelve total, ventas, alquileres y unidades DEMO usando el mismo alcance de asignación/membresía. Permite alimentar los indicadores de Home sin descargar todas las páginas. No requiere otra migración. Imagen de comprobación: `jaguar-api:home-check`; la versión anterior sigue siendo compatible con esta primera Home para cuentas cuya lista cabe en una página.

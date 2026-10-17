@@ -47,6 +47,9 @@ try:
     const get=(path,t=token)=>fetch(base+path,{headers:{authorization:'Bearer '+t}});
     assert.equal((await fetch(base+'/equipment')).status,401);
     assert.equal((await get('/equipment?cursor=invalid')).status,400);
+    assert.equal((await fetch(base+'/equipment/summary')).status,401);
+    const summary=await (await get('/equipment/summary')).json();
+    assert.deepEqual(summary,{total:2,sales:1,rentals:1,demos:2});
     const listing=await (await get('/equipment')).json();assert.equal(listing.items.length,2);
     assert.equal(listing.nextCursor,null);assert.equal(listing.items.every(e=>e.isDemo),true);
     const detail=await (await get('/equipment/'+listing.items[0].id)).json();
@@ -87,6 +90,8 @@ try:
     const {token}=await r.json();
     const list=await fetch('http://localhost:3000/api/equipment',{headers:{authorization:'Bearer '+token}});
     assert.equal(list.status,200);assert.equal((await list.json()).items.length,0);
+    const summary=await fetch('http://localhost:3000/api/equipment/summary',{headers:{authorization:'Bearer '+token}});
+    assert.deepEqual(await summary.json(),{total:0,sales:0,rentals:0,demos:0});
     console.log('OK: equipos y PDF aislados por cliente; revocación de membresía inmediata');
     """
     print(run('exec',api,'node','--input-type=module','-e',revoked).strip())
