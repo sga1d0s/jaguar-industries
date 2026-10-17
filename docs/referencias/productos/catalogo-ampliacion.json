@@ -1,0 +1,1258 @@
+[
+  {
+    "folder": "serie-650",
+    "code": "650",
+    "name": "Polea manual con limitador de carga",
+    "category": "Elevación y tracción",
+    "description": "Polipasto manual de cadena con limitador de carga integrado.",
+    "sourceUrl": "https://www.industriasjaguar.com/es/productos/elevacion-traccion/poleas-manuales-con-limitador-de-carga",
+    "verifiedOn": "2026-10-17",
+    "variants": [
+      {
+        "reference": "AFL2000",
+        "name": "Serie 650 · 500 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "500 kg"
+          },
+          {
+            "label": "Número de ramales",
+            "value": "1"
+          },
+          {
+            "label": "Peso con 3 m de elevación",
+            "value": "10 kg"
+          },
+          {
+            "label": "Limitador de carga",
+            "value": "Integrado"
+          }
+        ]
+      },
+      {
+        "reference": "AFL3000",
+        "name": "Serie 650 · 1.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "1.000 kg"
+          },
+          {
+            "label": "Número de ramales",
+            "value": "1"
+          },
+          {
+            "label": "Peso con 3 m de elevación",
+            "value": "12 kg"
+          },
+          {
+            "label": "Limitador de carga",
+            "value": "Integrado"
+          }
+        ]
+      },
+      {
+        "reference": "AFL4000",
+        "name": "Serie 650 · 1.500 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "1.500 kg"
+          },
+          {
+            "label": "Número de ramales",
+            "value": "1"
+          },
+          {
+            "label": "Peso con 3 m de elevación",
+            "value": "18 kg"
+          },
+          {
+            "label": "Limitador de carga",
+            "value": "Integrado"
+          }
+        ]
+      },
+      {
+        "reference": "AFL5000",
+        "name": "Serie 650 · 2.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "2.000 kg"
+          },
+          {
+            "label": "Número de ramales",
+            "value": "2"
+          },
+          {
+            "label": "Peso con 3 m de elevación",
+            "value": "17 kg"
+          },
+          {
+            "label": "Limitador de carga",
+            "value": "Integrado"
+          }
+        ]
+      },
+      {
+        "reference": "AFL6000",
+        "name": "Serie 650 · 3.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "3.000 kg"
+          },
+          {
+            "label": "Número de ramales",
+            "value": "2"
+          },
+          {
+            "label": "Peso con 3 m de elevación",
+            "value": "27 kg"
+          },
+          {
+            "label": "Limitador de carga",
+            "value": "Integrado"
+          }
+        ]
+      },
+      {
+        "reference": "AFL8000",
+        "name": "Serie 650 · 5.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "5.000 kg"
+          },
+          {
+            "label": "Número de ramales",
+            "value": "2"
+          },
+          {
+            "label": "Peso con 3 m de elevación",
+            "value": "42 kg"
+          },
+          {
+            "label": "Limitador de carga",
+            "value": "Integrado"
+          }
+        ]
+      },
+      {
+        "reference": "AFL9000",
+        "name": "Serie 650 · 7.500 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "7.500 kg"
+          },
+          {
+            "label": "Número de ramales",
+            "value": "3"
+          },
+          {
+            "label": "Peso con 3 m de elevación",
+            "value": "56,5 kg"
+          },
+          {
+            "label": "Limitador de carga",
+            "value": "Integrado"
+          }
+        ]
+      },
+      {
+        "reference": "AFL11000",
+        "name": "Serie 650 · 10.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "10.000 kg"
+          },
+          {
+            "label": "Número de ramales",
+            "value": "4"
+          },
+          {
+            "label": "Peso con 3 m de elevación",
+            "value": "78 kg"
+          },
+          {
+            "label": "Limitador de carga",
+            "value": "Integrado"
+          }
+        ]
+      },
+      {
+        "reference": "AFL13000",
+        "name": "Serie 650 · 15.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "15.000 kg"
+          },
+          {
+            "label": "Número de ramales",
+            "value": "6"
+          },
+          {
+            "label": "Peso con 3 m de elevación",
+            "value": "96 kg"
+          },
+          {
+            "label": "Limitador de carga",
+            "value": "Integrado"
+          }
+        ]
+      },
+      {
+        "reference": "AFL14000",
+        "name": "Serie 650 · 20.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "20.000 kg"
+          },
+          {
+            "label": "Número de ramales",
+            "value": "8"
+          },
+          {
+            "label": "Peso con 3 m de elevación",
+            "value": "160 kg"
+          },
+          {
+            "label": "Limitador de carga",
+            "value": "Integrado"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "folder": "serie-500",
+    "code": "500",
+    "name": "Carro portapoleas",
+    "category": "Elevación y tracción",
+    "description": "Carro para desplazar polipastos sobre vigas, disponible con mando por cadena o por empuje.",
+    "sourceUrl": "https://www.industriasjaguar.com/es/productos/elevacion-traccion/carros-portapoleas",
+    "verifiedOn": "2026-10-17",
+    "variants": [
+      {
+        "reference": "ABR5100",
+        "name": "Serie 500 · tipo B · empuje · 250 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "250 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por empuje"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "50–133 mm"
+          },
+          {
+            "label": "Peso sin mando",
+            "value": "5,1 kg"
+          }
+        ]
+      },
+      {
+        "reference": "AAR5100",
+        "name": "Serie 500 · tipo A · cadena · 250 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "250 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por cadena"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "50–143 mm"
+          },
+          {
+            "label": "Peso con 3 m de mando",
+            "value": "8,9 kg"
+          }
+        ]
+      },
+      {
+        "reference": "ABR5200",
+        "name": "Serie 500 · tipo B · empuje · 500 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "500 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por empuje"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "50–133 mm"
+          },
+          {
+            "label": "Peso sin mando",
+            "value": "5,1 kg"
+          }
+        ]
+      },
+      {
+        "reference": "AAR5200",
+        "name": "Serie 500 · tipo A · cadena · 500 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "500 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por cadena"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "50–143 mm"
+          },
+          {
+            "label": "Peso con 3 m de mando",
+            "value": "8,9 kg"
+          }
+        ]
+      },
+      {
+        "reference": "ABR5300",
+        "name": "Serie 500 · tipo B · empuje · 1.000 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "1.000 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por empuje"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "58–150 mm"
+          },
+          {
+            "label": "Peso sin mando",
+            "value": "8,4 kg"
+          }
+        ]
+      },
+      {
+        "reference": "AAR5300",
+        "name": "Serie 500 · tipo A · cadena · 1.000 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "1.000 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por cadena"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "58–158 mm"
+          },
+          {
+            "label": "Peso con 3 m de mando",
+            "value": "12,4 kg"
+          }
+        ]
+      },
+      {
+        "reference": "ABR5400",
+        "name": "Serie 500 · tipo B · empuje · 1.500 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "1.500 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por empuje"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "74–176 mm"
+          },
+          {
+            "label": "Peso sin mando",
+            "value": "12,9 kg"
+          }
+        ]
+      },
+      {
+        "reference": "AAR5400",
+        "name": "Serie 500 · tipo A · cadena · 1.500 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "1.500 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por cadena"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "74–187 mm"
+          },
+          {
+            "label": "Peso con 3 m de mando",
+            "value": "16,5 kg"
+          }
+        ]
+      },
+      {
+        "reference": "ABR5500",
+        "name": "Serie 500 · tipo B · empuje · 2.000 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "2.000 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por empuje"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "74–176 mm"
+          },
+          {
+            "label": "Peso sin mando",
+            "value": "12,9 kg"
+          }
+        ]
+      },
+      {
+        "reference": "AAR5500",
+        "name": "Serie 500 · tipo A · cadena · 2.000 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "2.000 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por cadena"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "74–187 mm"
+          },
+          {
+            "label": "Peso con 3 m de mando",
+            "value": "16,5 kg"
+          }
+        ]
+      },
+      {
+        "reference": "ABR5600",
+        "name": "Serie 500 · tipo B · empuje · 3.000 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "3.000 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por empuje"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "74–184 mm"
+          },
+          {
+            "label": "Peso sin mando",
+            "value": "21 kg"
+          }
+        ]
+      },
+      {
+        "reference": "AAR5600",
+        "name": "Serie 500 · tipo A · cadena · 3.000 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "3.000 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por cadena"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "74–197 mm"
+          },
+          {
+            "label": "Peso con 3 m de mando",
+            "value": "25,2 kg"
+          }
+        ]
+      },
+      {
+        "reference": "ABR5700",
+        "name": "Serie 500 · tipo B · empuje · 4.000 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "4.000 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por empuje"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "90–203 mm"
+          },
+          {
+            "label": "Peso sin mando",
+            "value": "39 kg"
+          }
+        ]
+      },
+      {
+        "reference": "AAR5700",
+        "name": "Serie 500 · tipo A · cadena · 4.000 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "4.000 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por cadena"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "90–218 mm"
+          },
+          {
+            "label": "Peso con 3 m de mando",
+            "value": "50 kg"
+          }
+        ]
+      },
+      {
+        "reference": "ABR5800",
+        "name": "Serie 500 · tipo B · empuje · 5.000 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "5.000 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por empuje"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "90–203 mm"
+          },
+          {
+            "label": "Peso sin mando",
+            "value": "39 kg"
+          }
+        ]
+      },
+      {
+        "reference": "AAR5800",
+        "name": "Serie 500 · tipo A · cadena · 5.000 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "5.000 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por cadena"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "90–218 mm"
+          },
+          {
+            "label": "Peso con 3 m de mando",
+            "value": "55 kg"
+          }
+        ]
+      },
+      {
+        "reference": "ABR5910",
+        "name": "Serie 500 · tipo B · empuje · 7.500 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "7.500 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por empuje"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "119–203 mm"
+          },
+          {
+            "label": "Peso sin mando",
+            "value": "71 kg"
+          }
+        ]
+      },
+      {
+        "reference": "AAR5910",
+        "name": "Serie 500 · tipo A · cadena · 7.500 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "7.500 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por cadena"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "119–200 mm"
+          },
+          {
+            "label": "Peso con 3 m de mando",
+            "value": "89 kg"
+          }
+        ]
+      },
+      {
+        "reference": "ABR5920",
+        "name": "Serie 500 · tipo B · empuje · 10.000 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "10.000 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por empuje"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "119–203 mm"
+          },
+          {
+            "label": "Peso sin mando",
+            "value": "71 kg"
+          }
+        ]
+      },
+      {
+        "reference": "AAR5920",
+        "name": "Serie 500 · tipo A · cadena · 10.000 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "10.000 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por cadena"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "119–200 mm"
+          },
+          {
+            "label": "Peso con 3 m de mando",
+            "value": "93 kg"
+          }
+        ]
+      },
+      {
+        "reference": "AAR5930",
+        "name": "Serie 500 · tipo A · cadena · 15.000 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "15.000 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por cadena"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "144–203 mm"
+          },
+          {
+            "label": "Peso con 3 m de mando",
+            "value": "235 kg"
+          }
+        ]
+      },
+      {
+        "reference": "AAR5940",
+        "name": "Serie 500 · tipo A · cadena · 20.000 kg",
+        "specifications": [
+          {
+            "label": "Carga máxima de trabajo",
+            "value": "20.000 kg"
+          },
+          {
+            "label": "Traslación",
+            "value": "Por cadena"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "144–203 mm"
+          },
+          {
+            "label": "Peso con 3 m de mando",
+            "value": "245 kg"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "folder": "modelo-bc",
+    "code": "BC",
+    "name": "Pinza de anclaje",
+    "category": "Elevación y tracción",
+    "description": "Punto de suspensión ajustable para polipastos sobre perfiles de acero.",
+    "sourceUrl": "https://www.industriasjaguar.com/es/productos/elevacion-traccion/pinzas-de-anclaje",
+    "verifiedOn": "2026-10-17",
+    "variants": [
+      {
+        "reference": "ABC1000",
+        "name": "BC010 · 1.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "1.000 kg"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "75–230 mm"
+          },
+          {
+            "label": "Peso",
+            "value": "3,5 kg"
+          }
+        ]
+      },
+      {
+        "reference": "ABC2000",
+        "name": "BC020 · 2.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "2.000 kg"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "75–230 mm"
+          },
+          {
+            "label": "Peso",
+            "value": "5 kg"
+          }
+        ]
+      },
+      {
+        "reference": "ABC3000",
+        "name": "BC030 · 3.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "3.000 kg"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "80–320 mm"
+          },
+          {
+            "label": "Peso",
+            "value": "9 kg"
+          }
+        ]
+      },
+      {
+        "reference": "ABC5000",
+        "name": "BC050 · 5.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "5.000 kg"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "90–320 mm"
+          },
+          {
+            "label": "Peso",
+            "value": "11 kg"
+          }
+        ]
+      },
+      {
+        "reference": "ABC6000",
+        "name": "BC0100 · 10.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "10.000 kg"
+          },
+          {
+            "label": "Anchura de viga",
+            "value": "90–320 mm"
+          },
+          {
+            "label": "Peso",
+            "value": "15 kg"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "folder": "serie-900",
+    "code": "900",
+    "name": "Polipasto de palanca Palfer",
+    "category": "Elevación y tracción",
+    "description": "Polipasto manual de palanca para trabajos de elevación y arrastre.",
+    "sourceUrl": "https://www.industriasjaguar.com/es/productos/elevacion-traccion/polipastos-de-palanca-palfer",
+    "verifiedOn": "2026-10-17",
+    "variants": [
+      {
+        "reference": "APA0250",
+        "name": "Serie 900 · 250 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "250 kg"
+          },
+          {
+            "label": "Número de ramales",
+            "value": "1"
+          },
+          {
+            "label": "Peso con 1,5 m de elevación",
+            "value": "2,3 kg"
+          }
+        ]
+      },
+      {
+        "reference": "APA0500",
+        "name": "Serie 900 · 500 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "500 kg"
+          },
+          {
+            "label": "Número de ramales",
+            "value": "1"
+          },
+          {
+            "label": "Peso con 1,5 m de elevación",
+            "value": "6,2 kg"
+          }
+        ]
+      },
+      {
+        "reference": "APA1000",
+        "name": "Serie 900 · 750 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "750 kg"
+          },
+          {
+            "label": "Número de ramales",
+            "value": "1"
+          },
+          {
+            "label": "Peso con 1,5 m de elevación",
+            "value": "7 kg"
+          }
+        ]
+      },
+      {
+        "reference": "APA2000",
+        "name": "Serie 900 · 1.500 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "1.500 kg"
+          },
+          {
+            "label": "Número de ramales",
+            "value": "1"
+          },
+          {
+            "label": "Peso con 1,5 m de elevación",
+            "value": "13 kg"
+          }
+        ]
+      },
+      {
+        "reference": "APA3000",
+        "name": "Serie 900 · 3.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "3.000 kg"
+          },
+          {
+            "label": "Número de ramales",
+            "value": "1"
+          },
+          {
+            "label": "Peso con 1,5 m de elevación",
+            "value": "20 kg"
+          }
+        ]
+      },
+      {
+        "reference": "APA4000",
+        "name": "Serie 900 · 6.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "6.000 kg"
+          },
+          {
+            "label": "Número de ramales",
+            "value": "2"
+          },
+          {
+            "label": "Peso con 1,5 m de elevación",
+            "value": "29 kg"
+          }
+        ]
+      },
+      {
+        "reference": "APA5000",
+        "name": "Serie 900 · 9.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "9.000 kg"
+          },
+          {
+            "label": "Número de ramales",
+            "value": "3"
+          },
+          {
+            "label": "Peso con 1,5 m de elevación",
+            "value": "44 kg"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "folder": "modelo-em",
+    "code": "EM",
+    "name": "Elevador magnético manual",
+    "category": "Garras de elevación y elevadores magnéticos",
+    "description": "Elevador para piezas ferromagnéticas planas o redondas. La carga admisible depende de la geometría, el espesor y las condiciones del manual.",
+    "sourceUrl": "https://www.industriasjaguar.com/es/productos/garras-de-elevacion-y-elevadores-magneticos/elevadores-magneticos",
+    "verifiedOn": "2026-10-17",
+    "variants": [
+      {
+        "reference": "AEM1000",
+        "name": "EM-1 · 100 kg en plano",
+        "specifications": [
+          {
+            "label": "Carga máxima en plano",
+            "value": "100 kg"
+          },
+          {
+            "label": "Espesor mínimo en plano para esa carga",
+            "value": "30 mm"
+          },
+          {
+            "label": "Carga máxima en redondo",
+            "value": "30 kg"
+          },
+          {
+            "label": "Espesor mínimo en redondo para esa carga",
+            "value": "15 mm"
+          },
+          {
+            "label": "Peso neto",
+            "value": "2,7 kg"
+          },
+          {
+            "label": "Condiciones de uso",
+            "value": "Consultar ficha y manual; no extrapolar la carga de piezas planas a redondas."
+          }
+        ]
+      },
+      {
+        "reference": "AEM2000",
+        "name": "EM-3 · 300 kg en plano",
+        "specifications": [
+          {
+            "label": "Carga máxima en plano",
+            "value": "300 kg"
+          },
+          {
+            "label": "Espesor mínimo en plano para esa carga",
+            "value": "40 mm"
+          },
+          {
+            "label": "Carga máxima en redondo",
+            "value": "100 kg"
+          },
+          {
+            "label": "Espesor mínimo en redondo para esa carga",
+            "value": "20 mm"
+          },
+          {
+            "label": "Peso neto",
+            "value": "9,4 kg"
+          },
+          {
+            "label": "Condiciones de uso",
+            "value": "Consultar ficha y manual; no extrapolar la carga de piezas planas a redondas."
+          }
+        ]
+      },
+      {
+        "reference": "AEM3000",
+        "name": "EM-6 · 600 kg en plano",
+        "specifications": [
+          {
+            "label": "Carga máxima en plano",
+            "value": "600 kg"
+          },
+          {
+            "label": "Espesor mínimo en plano para esa carga",
+            "value": "50 mm"
+          },
+          {
+            "label": "Carga máxima en redondo",
+            "value": "200 kg"
+          },
+          {
+            "label": "Espesor mínimo en redondo para esa carga",
+            "value": "25 mm"
+          },
+          {
+            "label": "Peso neto",
+            "value": "22,8 kg"
+          },
+          {
+            "label": "Condiciones de uso",
+            "value": "Consultar ficha y manual; no extrapolar la carga de piezas planas a redondas."
+          }
+        ]
+      },
+      {
+        "reference": "AEM4000",
+        "name": "EM-10 · 1.000 kg en plano",
+        "specifications": [
+          {
+            "label": "Carga máxima en plano",
+            "value": "1.000 kg"
+          },
+          {
+            "label": "Espesor mínimo en plano para esa carga",
+            "value": "60 mm"
+          },
+          {
+            "label": "Carga máxima en redondo",
+            "value": "300 kg"
+          },
+          {
+            "label": "Espesor mínimo en redondo para esa carga",
+            "value": "30 mm"
+          },
+          {
+            "label": "Peso neto",
+            "value": "52,2 kg"
+          },
+          {
+            "label": "Condiciones de uso",
+            "value": "Consultar ficha y manual; no extrapolar la carga de piezas planas a redondas."
+          }
+        ]
+      },
+      {
+        "reference": "AEM5000",
+        "name": "EM-20 · 2.000 kg en plano",
+        "specifications": [
+          {
+            "label": "Carga máxima en plano",
+            "value": "2.000 kg"
+          },
+          {
+            "label": "Espesor mínimo en plano para esa carga",
+            "value": "70 mm"
+          },
+          {
+            "label": "Carga máxima en redondo",
+            "value": "600 kg"
+          },
+          {
+            "label": "Espesor mínimo en redondo para esa carga",
+            "value": "35 mm"
+          },
+          {
+            "label": "Peso neto",
+            "value": "130 kg"
+          },
+          {
+            "label": "Condiciones de uso",
+            "value": "Consultar ficha y manual; no extrapolar la carga de piezas planas a redondas."
+          }
+        ]
+      },
+      {
+        "reference": "AEM6000",
+        "name": "EM-30 · 3.000 kg en plano",
+        "specifications": [
+          {
+            "label": "Carga máxima en plano",
+            "value": "3.000 kg"
+          },
+          {
+            "label": "Espesor mínimo en plano para esa carga",
+            "value": "80 mm"
+          },
+          {
+            "label": "Carga máxima en redondo",
+            "value": "1.000 kg"
+          },
+          {
+            "label": "Espesor mínimo en redondo para esa carga",
+            "value": "40 mm"
+          },
+          {
+            "label": "Peso neto",
+            "value": "244 kg"
+          },
+          {
+            "label": "Condiciones de uso",
+            "value": "Consultar ficha y manual; no extrapolar la carga de piezas planas a redondas."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "folder": "modelo-gc",
+    "code": "GC",
+    "name": "Gato de cremallera",
+    "category": "Manutención y pesaje",
+    "description": "Gato de accionamiento mecánico con palanca plegable para elevar y descender cargas.",
+    "sourceUrl": "https://www.industriasjaguar.com/es/productos/manutencion-pesaje/gatos-cremallera",
+    "verifiedOn": "2026-10-17",
+    "variants": [
+      {
+        "reference": "AGACR015",
+        "name": "GC-15 · 1.500 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "1.500 kg"
+          },
+          {
+            "label": "Peso neto",
+            "value": "14 kg"
+          },
+          {
+            "label": "Accionamiento",
+            "value": "Mecánico con palanca plegable"
+          }
+        ]
+      },
+      {
+        "reference": "AGACR030",
+        "name": "GC-30 · 3.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "3.000 kg"
+          },
+          {
+            "label": "Peso neto",
+            "value": "20 kg"
+          },
+          {
+            "label": "Accionamiento",
+            "value": "Mecánico con palanca plegable"
+          }
+        ]
+      },
+      {
+        "reference": "AGACR050",
+        "name": "GC-50 · 5.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "5.000 kg"
+          },
+          {
+            "label": "Peso neto",
+            "value": "28 kg"
+          },
+          {
+            "label": "Accionamiento",
+            "value": "Mecánico con palanca plegable"
+          }
+        ]
+      },
+      {
+        "reference": "AGACR100",
+        "name": "GC-100 · 10.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "10.000 kg"
+          },
+          {
+            "label": "Peso neto",
+            "value": "46,5 kg"
+          },
+          {
+            "label": "Accionamiento",
+            "value": "Mecánico con palanca plegable"
+          }
+        ]
+      },
+      {
+        "reference": "AGACR160",
+        "name": "GC-160 · 16.000 kg",
+        "specifications": [
+          {
+            "label": "Capacidad nominal",
+            "value": "16.000 kg"
+          },
+          {
+            "label": "Peso neto",
+            "value": "65 kg"
+          },
+          {
+            "label": "Accionamiento",
+            "value": "Mecánico con palanca plegable"
+          }
+        ]
+      }
+    ]
+  }
+]

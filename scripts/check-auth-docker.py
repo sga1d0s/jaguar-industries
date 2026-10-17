@@ -133,6 +133,36 @@ try:
     await pool.end(); console.log('OK: panel aislado, altas, validación, auditoría, asignación concurrente, devolución y propiedad de venta');
     """
     print(run('exec',api,'node','--input-type=module','-e',panel_code).strip())
+    # Importar dos veces no duplica referencias, unidades o documentos. Se conserva
+    # una edición hecha por el propietario entre ambas cargas del catálogo oficial.
+    catalog_seed=migration[:-1]+['scripts/seed-catalog.mjs']
+    run(*catalog_seed,env=admin)
+    run('exec',db,'psql','-U','jaguar_owner','-d','jaguar','-c',"UPDATE product_models SET name='Nombre ajustado en Jaguar' WHERE code='650'")
+    run(*catalog_seed,env=admin)
+    catalog_code="""
+    const assert=(await import('node:assert/strict')).default;
+    const base='http://localhost:3000/api';
+    const login=await fetch(base+'/auth/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:'test@example.com',password:'a-long-test-password-123'})});
+    const {token}=await login.json();const headers={authorization:'Bearer '+token};
+    const models=(await (await fetch(base+'/panel/models',{headers})).json()).items;
+    assert.equal(models.length,9);assert.equal(models.reduce((n,m)=>n+m.variants.length,0),58);
+    const codes=['650','500','BC','900','EM','GC'];
+    for(const code of codes){
+      const model=models.find(m=>m.code===code);assert.equal(model.documents.length,3);
+      for(const document of model.documents){
+        const pdf=await fetch(base+'/panel/documents/'+document.id,{headers});assert.equal(pdf.status,200);
+        assert.equal(pdf.headers.get('content-type'),'application/pdf');
+        assert.equal(new TextDecoder().decode((await pdf.arrayBuffer()).slice(0,5)),'%PDF-');
+      }
+    }
+    const a=models.find(m=>m.code==='630'),b=models.find(m=>m.code==='650');
+    assert.equal(a.documents.find(d=>d.kind==='manual').id,b.documents.find(d=>d.kind==='manual').id);
+    assert.equal(b.name,'Nombre ajustado en Jaguar');
+    const summary=await (await fetch(base+'/panel/summary',{headers})).json();assert.equal(summary.all_units,6);
+    const {pool}=await import('./db.mjs');assert.equal((await pool.query('SELECT count(*)::int AS n FROM product_documents')).rows[0].n,23);
+    await pool.end();console.log('OK: catálogo repetible, 55 referencias, PDF íntegros, manual compartido y ediciones conservadas; sin unidades nuevas');
+    """
+    print(run('exec',api,'node','--input-type=module','-e',catalog_code).strip())
     if os.environ.get('JAGUAR_TEST_WEB_IMAGE'):
         run('run','-d','--name',web,'--network',network,'--read-only','--tmpfs','/tmp:rw,noexec,nosuid,size=32m,mode=1777','--cap-drop','ALL',os.environ['JAGUAR_TEST_WEB_IMAGE'])
         web_code="""
@@ -142,6 +172,10 @@ try:
         const page=await fetch(base+'/');assert.equal(page.status,200);assert.match(await page.text(),/Panel de equipos/);
         assert.match(page.headers.get('content-security-policy'),/frame-ancestors 'none'/);
         const js=await fetch(base+'/app.js');assert.equal(js.status,200);assert.match(js.headers.get('content-type'),/javascript/);
+        const images=await fetch(base+'/product-images.js');assert.equal(images.status,200);assert.match(await images.text(),/modelo-em.png/);
+        for(const image of ['serie-650','serie-500','modelo-bc','serie-900','modelo-em','modelo-gc']){
+          const response=await fetch(base+'/assets/'+image+'.png');assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'image/png');
+        }
         const health=await fetch(base+'/api/ready');assert.equal(health.status,200);assert.equal((await health.json()).status,'ok');
         assert.equal((await fetch(base+'/api/panel/units')).status,401);
         const login=await fetch(base+'/api/auth/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:'test@example.com',password:'a-long-test-password-123'})});

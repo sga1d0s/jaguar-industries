@@ -46,3 +46,7 @@ JAGUAR_TEST_IMAGE=jaguar-api:panel-check JAGUAR_TEST_WEB_IMAGE=jaguar-web:panel-
 ```
 
 La prueba crea y elimina su PostgreSQL y red temporales. Comprueba autorización interna, aislamiento de clientes, validación, asignaciones concurrentes, propiedad tras venta, devolución, auditoría, proxy y regresiones de la API móvil. No utiliza cuentas ni contraseñas reales.
+
+## Ampliación del catálogo oficial
+
+Se han preparado seis familias adicionales con 55 referencias, fotografías, ficha, manual y declaración CE. Para desplegar esta ampliación, usar `API_IMAGE=jaguar-api:catalog-check` y `WEB_IMAGE=jaguar-web:catalog-check` (imágenes construidas en el NAS), actualizar sin re-pull y ejecutar `python3 scripts/setup-catalog-nas.py`. Después recargar Catálogo. No hay cambios en Compose, Cloudflare, permisos o APK. Ver [fuentes y proceso de carga](../../docs/referencias/productos/README.md).

@@ -52,5 +52,167 @@
     "fecha_descarga": "2026-10-16",
     "bytes": 237220,
     "sha256": "9faf5c3f1fa9c33eb3460a2420a48b49065b021c10bca74a3907f7c0e67bb8d4"
+  },
+  {
+    "producto": "serie-650",
+    "tipo": "ficha",
+    "archivo": "serie-650/ficha.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/fichas_2025/page_021.pdf",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 323344,
+    "sha256": "2182b41ccd66b50a127a3ef38573e7be07f8bcf5e8ce4c06756de3afbefc0954"
+  },
+  {
+    "producto": "serie-650",
+    "tipo": "manual",
+    "archivo": "serie-630/manual.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/APARATOS_MANUALES/poleas_manuales_con_limitador_de_carga/Manual_Polipasto_manual_630%2C650.pdf",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 10015081,
+    "sha256": "501eb97ff91784f4552e402db941530cc69e37d1c57219e3b20e0a9673fc558c"
+  },
+  {
+    "producto": "serie-650",
+    "tipo": "declaracion-ce",
+    "archivo": "serie-650/declaracion-ce.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/APARATOS_MANUALES/poleas_manuales_con_limitador_de_carga/declaracion_ce_poleas_650.pdf",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 230425,
+    "sha256": "364a8e8972aabed14a0312320340a6c08815ea61b70fec392592ba6afa255d89"
+  },
+  {
+    "producto": "serie-500",
+    "tipo": "ficha",
+    "archivo": "serie-500/ficha.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/fichas_2025/page_022.pdf",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 294530,
+    "sha256": "9d5958aaa38dce2445488a48c324f9c79daf080c104c25c005a0b7196f5effab"
+  },
+  {
+    "producto": "serie-500",
+    "tipo": "manual",
+    "archivo": "serie-500/manual.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/APARATOS_MANUALES/carros_portapoleas/Manual_Carros_portapoleas_500_y_520.pdf",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 2908065,
+    "sha256": "63f51769a8cd660a59cca39266ab7b7beaac6c2d4a50fdcdf7f40be272f4a863"
+  },
+  {
+    "producto": "serie-500",
+    "tipo": "declaracion-ce",
+    "archivo": "serie-500/declaracion-ce.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/APARATOS_MANUALES/carros_portapoleas/declaracion_ce_carros_manuales_s.500.pdf",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 244697,
+    "sha256": "c3f41a6b5df0a4daf5c6de48f164aace03b56e92d9d0b961528fe235af4e502f"
+  },
+  {
+    "producto": "modelo-bc",
+    "tipo": "ficha",
+    "archivo": "modelo-bc/ficha.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/fichas_2025/page_025.pdf",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 280183,
+    "sha256": "7e85710ff49d45fb67b3d6fc867cb085a0b416803af9e0378016a383dd3e6d39"
+  },
+  {
+    "producto": "modelo-bc",
+    "tipo": "manual",
+    "archivo": "modelo-bc/manual.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/APARATOS_MANUALES/pinzas_de_anclaje/MANUAL_PINZAS_DE_ANCLAJE_BC.pdf",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 1640382,
+    "sha256": "aba4bf46384b37832464acca324126d4d5d706946ac371f89ac5a2b51c3557a3"
+  },
+  {
+    "producto": "modelo-bc",
+    "tipo": "declaracion-ce",
+    "archivo": "modelo-bc/declaracion-ce.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/APARATOS_MANUALES/pinzas_de_anclaje/declaracion_ce_pinzas_de_anclaje_bc.pdf",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 230013,
+    "sha256": "91fe6825546e32d91102eb95075d9eb6be56019dfc6680b6267fe1c36e4adee6"
+  },
+  {
+    "producto": "serie-900",
+    "tipo": "ficha",
+    "archivo": "serie-900/ficha.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/fichas_2025/page_026.pdf",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 408317,
+    "sha256": "db4e0d128c77d0cc11daedb22e3ba94f17b21d933cb4c1037df225afef9712e2"
+  },
+  {
+    "producto": "serie-900",
+    "tipo": "manual",
+    "archivo": "serie-900/manual.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/APARATOS_MANUALES/polipastos_palanca_palfer/Manual_Polipasto_de_palanca_palfer_900.pdf",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 12285174,
+    "sha256": "7fe03ecb81287a78853e545b928c965035e577ab43c5eee96c11842f3cc75a41"
+  },
+  {
+    "producto": "serie-900",
+    "tipo": "declaracion-ce",
+    "archivo": "serie-900/declaracion-ce.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/APARATOS_MANUALES/polipastos_palanca_palfer/declaracion_ce_palfer_serie_900.pdf",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 230264,
+    "sha256": "984a9c8d8ab016631183a717b26a18c1fcdb2a406761033735a9525b24730454"
+  },
+  {
+    "producto": "modelo-em",
+    "tipo": "ficha",
+    "archivo": "modelo-em/ficha.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/fichas_2025/page_068.pdf",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 214018,
+    "sha256": "8f74e1f35cc27166c7af1d7ffa2dccdf4564f5f4ebfbcaf08481d4bd7b724423"
+  },
+  {
+    "producto": "modelo-em",
+    "tipo": "manual",
+    "archivo": "modelo-em/manual.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/GARRAS_DE_ELEVACION/ELEVADORES_MAGNETICOS/MANUAL_ELEVADORES_MAGNETICOS_EM.pdf",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 5329922,
+    "sha256": "b976b04f36ec8a36f644b3da9a49caa6314db256fdc8762753c925ed5224599a"
+  },
+  {
+    "producto": "modelo-em",
+    "tipo": "declaracion-ce",
+    "archivo": "modelo-em/declaracion-ce.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/GARRAS_DE_ELEVACION/ELEVADORES_MAGNETICOS/declaracion_ce_elevadores_magneticos_em.pdf",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 230093,
+    "sha256": "b5761cce280def41d5fc04f29f27ef34590fee539c4d78f195e39682749aff72"
+  },
+  {
+    "producto": "modelo-gc",
+    "tipo": "ficha",
+    "archivo": "modelo-gc/ficha.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/fichas_2025/page_072.pdf",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 179458,
+    "sha256": "176ab24692f8c177f176491e43043cdce4a7904f9326078da1a415dd50a9b686"
+  },
+  {
+    "producto": "modelo-gc",
+    "tipo": "manual",
+    "archivo": "modelo-gc/manual.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/ELEVACION_Y_TRANSPORTE/GATOS_CREMALLERA/MANUAL_GATOS_CREMALLERA_GC.pdf",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 909939,
+    "sha256": "749d548e5d7b3dc0b21f7ad935d41d7080902f536cea6ebe2270989d8f176f43"
+  },
+  {
+    "producto": "modelo-gc",
+    "tipo": "declaracion-ce",
+    "archivo": "modelo-gc/declaracion-ce.pdf",
+    "url": "https://www.industriasjaguar.com/gestor/recursos/uploads/archivos/productos/ELEVACION_Y_TRANSPORTE/GATOS_CREMALLERA/declaracion_ce_gato_cremallera.pdf",
+    "fecha_descarga": "2026-10-17",
+    "bytes": 228977,
+    "sha256": "c6958518b2cc6348810b72b6f3bcfe193f1992129ff4cdd92f081af4127174a9"
   }
 ]

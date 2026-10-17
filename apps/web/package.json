@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node --check public/app.js",
+    "check": "node --check public/app.js && node --check public/product-images.js",
     "start": "node preview.mjs"
   }
 }

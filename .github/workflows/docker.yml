@@ -44,7 +44,9 @@ jobs:
           load: true
           tags: jaguar-api:ci
       - name: Verify web JavaScript
-        run: node --check apps/web/public/app.js
+        run: |
+          node --check apps/web/public/app.js
+          node --check apps/web/public/product-images.js
       - uses: docker/build-push-action@v6
         with:
           context: apps/web
