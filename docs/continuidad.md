@@ -328,3 +328,16 @@ La revisión automática RECHAZÓ ejecutar setup-nfc-nas.py en producción: impl
 
 
 El usuario autoriza explícitamente la copia previa y el permiso NFC. Ejecutado setup-nfc-nas.py --image jaguar-api:nfc-check correctamente el22 de octubre. Backup privado backups/before-nfc-20261022-005152.sql,57.171 bytes,modo0600 comprobado; no versionar. Verificado con consulta de privilegios: jaguar_app tiene UPDATE de nfc_uid y sigue sin UPDATE de serial_number ni variant_id. No se han vinculado etiquetas ni cambiado despliegue. El rechazo previo queda resuelto con autorización explícita y ejecución correcta. Siguiente paso: el usuario hace commit/push para CI/CD e instala Jaguar-NFC-equipos-20261022.apk desde Descargas; después vincula la etiqueta a una unidad no DEMO asignada a su cliente y verifica apertura de ficha al escanear. No repetir la migración.
+
+
+## Inicio automático y apertura Android por NFC — 22 de octubre de 2026
+
+El usuario confirma que, tras desplegar e instalar, la etiqueta ya se detecta. Pide que entrar en Escanear NFC inicie lectura sin pulsar otro botón y comunica el aviso de Android de que no hay aplicación compatible al acercar el chip fuera de una sesión de lectura. El repositorio main estaba limpio al empezar.
+
+Escanear inicia lectura al enfocar y al reanudar desde segundo plano; salir/cancelar invalida la generación y cancela. Los reinicios se serializan esperando la tarea anterior, para impedir sesiones nativas solapadas y navegación por respuestas antiguas. El botón queda para reintentos.
+
+Se añade plugin Expo local with-nfc-launch.js: TECH_DISCOVERED y recurso tech-list exclusivamente NfcV. Dos activity-alias apuntan a MainActivity: legacy habilitado hasta API36 y moderno desde37, protegido con DISPATCH_NFC_MESSAGE como exige Android17. La entrada normal y enlaces de la app conservan su configuración. Sin editar a mano Android generado.
+
+NfcIntents recibe el intent NFC de arranque y eventos de app ya abierta, valida tecnología/UID, deduplica entrega evento/cola y conserva solo en memoria el UID mientras se restaura sesión o se inicia login. NfcIntentNavigation se monta tras autenticación y navega a /nfc/[uid], que resuelve mediante la API autorizada existente y abre ficha sin pedir un segundo acercamiento. No se escribe el chip. startNfc comparte inicialización única para evitar que start() vuelva a cargar el intent original al volver a la app. Posibles selectores del sistema si hay otras lectoras; móvil desbloqueado/NFC activo. Tras instalar, abrir manualmente Jaguar; Android puede impedir dispatch si se ha forzado la detención.
+
+Lint y TypeScript pasan. Manifest y recursos generados verificados: solo NfcV, ambos alias y selección por API con permiso moderno. APK Release compilado correctamente en2m04s. Firma verificada con apksigner y alias/TECH_DISCOVERED/permiso moderno confirmados dentro del manifiesto del APK mediante aapt2. Archivo de36.487.943 bytes copiado por USB a /sdcard/Download/Jaguar-NFC-automatico-20261022.apk. No se modifican API, DB, permisos ni despliegue; no hace falta migración ni publicación de servidor para este cambio. Apertura y lectura físicas de esta nueva revisión pendientes de instalación manual por el usuario. Sin commit/push del agente.

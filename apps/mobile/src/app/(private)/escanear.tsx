@@ -1,3 +1,4 @@
+import { startNfc } from '../../lib/nfc-reader';
 import { useCallback, useRef, useState } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import NfcManager, { NfcTech, NfcError, NfcAdapter } from 'react-native-nfc-manager';
@@ -18,27 +19,19 @@ export default function ScanNfc(){
   const [uid,setUid]=useState<string|null>(null);
   const [readerError,setReaderError]=useState<string|null>(null);
   const busy=useRef(false);
-  // La sesión pertenece a esta pantalla y se cancela al salir o bloquear el móvil.
-  useFocusEffect(useCallback(()=>{
-    active.current=true;
-    const subscription=AppState.addEventListener('change',state=>{
-      if(state==='background')void NfcManager.cancelTechnologyRequest().catch(()=>{});
-    });
-    return ()=>{
-      active.current=false;
-      subscription.remove();
-      void NfcManager.cancelTechnologyRequest().catch(()=>{});
-    };
-  },[]));
-  async function scan(){
+  const generation=useRef(0);
+  const lastScan=useRef<Promise<void>>(Promise.resolve());
+  const scan=useCallback(async()=>{
+    const ticket=generation.current;
+    const live=()=>active.current&&generation.current===ticket;
     if(busy.current)return;
     busy.current=true;setReading(true);setUid(null);setReaderError(null);
     try{
       if(Platform.OS!=='ios'&&Platform.OS!=='android')throw new Error('La lectura NFC requiere la app instalada en un móvil.');
       if(!await NfcManager.isSupported())throw new Error('La lectura NFC no está disponible en este dispositivo.');
-      await NfcManager.start();
+      await startNfc();
       if(Platform.OS==='android'&&!await NfcManager.isEnabled())throw new Error('Activa NFC en los ajustes del teléfono y vuelve a intentarlo.');
-      if(!active.current)return;
+      if(!live())return;
       // NfcV permite detectar ISO 15693 aunque la etiqueta esté vacía, sin NDEF.
       await NfcManager.requestTechnology(Platform.OS==='ios'?NfcTech.Iso15693IOS:NfcTech.NfcV,{
         alertMessage:'Acerca la parte superior del iPhone a una sola etiqueta Jaguar.',
@@ -50,16 +43,16 @@ export default function ScanNfc(){
       if(!identifier||!/^[0-9A-F]{16}$/.test(identifier)){
         throw new Error('No se ha recibido un UID ISO 15693 válido. Vuelve a acercar la etiqueta.');
       }
-      if(active.current)setUid(identifier);
+      if(live())setUid(identifier);
       if(Platform.OS==='ios')await NfcManager.setAlertMessageIOS('Etiqueta leída correctamente.');
       // Finaliza el acceso al chip antes de consultar el servidor. El UID identifica
       // la unidad; la API sigue comprobando membresía y asignación en cada lectura.
       await NfcManager.cancelTechnologyRequest();
-      if(!active.current)return;
+      if(!live())return;
       const unit=await authenticatedRequest<{id:string;uid:string}>(`/equipment/by-nfc/${identifier}`);
-      if(active.current)router.push({pathname:'/equipos/[id]',params:{id:unit.id}});
+      if(live())router.push({pathname:'/equipos/[id]',params:{id:unit.id}});
     }catch(error){
-      if(active.current&&!(error instanceof NfcError.UserCancel)){
+      if(live()&&!(error instanceof NfcError.UserCancel)){
         setReaderError(error instanceof NfcError.Timeout?'Se agotó el tiempo. Acerca el móvil a la etiqueta y reintenta.':error instanceof Error?error.message:errorMessage(error));
       }
     }finally{
@@ -67,7 +60,29 @@ export default function ScanNfc(){
       busy.current=false;
       setReading(false);
     }
-  }
+  },[authenticatedRequest]);
+  // Serializa reinicios: al volver a la pantalla, espera a que termine la
+  // cancelación anterior. Nunca quedan dos solicitudes nativas simultáneas.
+  const requestScan=useCallback(()=>{
+    const ticket=++generation.current;
+    const task=lastScan.current.catch(()=>{}).then(async()=>{
+      if(active.current&&generation.current===ticket&&AppState.currentState==='active')await scan();
+    });
+    lastScan.current=task;
+  },[scan]);
+  const cancelScan=useCallback(()=>{
+    generation.current++;
+    void NfcManager.cancelTechnologyRequest().catch(()=>{});
+  },[]);
+  useFocusEffect(useCallback(()=>{
+    active.current=true;
+    requestScan();
+    const subscription=AppState.addEventListener('change',state=>{
+      if(state==='background'){active.current=false;cancelScan();}
+      if(state==='active'){active.current=true;requestScan();}
+    });
+    return ()=>{active.current=false;subscription.remove();cancelScan();};
+  },[requestScan,cancelScan]));
   // Permite revisar el destino del flujo con una unidad DEMO ya autorizada.
   // No se genera un UID ni se simula una lectura del hardware del teléfono.
   async function example(){
@@ -95,11 +110,11 @@ export default function ScanNfc(){
         <Text style={styles.readerTitle}>Acerca tu etiqueta</Text><Text style={styles.readerCopy}>Mantén el móvil junto al equipo\nhasta completar la lectura.</Text><View style={styles.readerState}><View style={styles.stateDot}/><Text style={styles.readerStateText}>{reading?'Leyendo etiqueta…':uid?'Lectura completada':'Listo para iniciar la lectura'}</Text></View>
       </View>
       <View style={styles.notice}><Feather name="info" size={18} color="#906a28"/><Text style={styles.noticeText}>Prueba de lectura ISO 15693: ICODE SLIX2 para pruebas y SupraNail para producción. Vincula la etiqueta a una unidad desde el panel. Al leerla, se abrirá su ficha si tu cuenta tiene acceso.</Text></View>
-      <Pressable accessibilityRole="button" disabled={reading} onPress={scan} style={[styles.primary,reading&&{opacity:0.7}]}>
+      <Pressable accessibilityRole="button" disabled={reading} onPress={requestScan} style={[styles.primary,reading&&{opacity:0.7}]}>
         {reading?<ActivityIndicator color="white"/>:<Feather name="radio" size={19} color="white"/>}
-        <Text style={styles.primaryText}>{reading?'Esperando etiqueta…':'Leer etiqueta NFC'}</Text>
+        <Text style={styles.primaryText}>{reading?'Esperando etiqueta…':'Volver a leer etiqueta'}</Text>
       </Pressable>
-      {reading&&<Pressable accessibilityRole="button" onPress={()=>void NfcManager.cancelTechnologyRequest().catch(()=>{})} style={styles.secondary}><Text style={styles.secondaryText}>Cancelar lectura</Text></Pressable>}
+      {reading&&<Pressable accessibilityRole="button" onPress={cancelScan} style={styles.secondary}><Text style={styles.secondaryText}>Cancelar lectura</Text></Pressable>}
       {uid&&<View style={styles.notice}><View style={{flex:1}}><Text style={styles.stepTitle}>Etiqueta detectada · ISO 15693</Text><Text selectable style={styles.value}>{uid}</Text><Text style={styles.noticeText}>Identificador leído del chip. Si no se abre la ficha, comprueba la vinculación en el panel y que tu cuenta tenga acceso a la unidad.</Text></View></View>}
       {readerError&&<View accessibilityRole="alert" style={styles.notice}><Text selectable style={styles.noticeText}>{readerError}</Text></View>}
       <Text style={styles.sectionTitle}>Cómo escanear</Text>

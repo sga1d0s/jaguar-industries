@@ -1,3 +1,4 @@
+import { NfcIntentNavigation } from '../../lib/nfc-intents';
 import { Redirect, Stack } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
 import { useAuth } from '../../lib/session';
@@ -7,10 +8,11 @@ export default function PrivateLayout() {
   if(!ready && restoreError)return <Redirect href="/" />;
   if(!ready)return <View style={{flex:1,justifyContent:'center'}}><ActivityIndicator /></View>;
   if(!user)return <Redirect href="/" />;
-  return <Stack screenOptions={{headerTintColor:'#13212c',headerShadowVisible:false}}>
+  return <><NfcIntentNavigation/><Stack screenOptions={{headerTintColor:'#13212c',headerShadowVisible:false}}>
     <Stack.Screen name="inicio" options={{headerShown:false}} />
+    <Stack.Screen name="nfc/[uid]" options={{title:'Etiqueta NFC',headerBackTitle:'Inicio'}} />
     <Stack.Screen name="escanear" options={{title:'Escanear NFC',headerBackTitle:'Inicio',headerStyle:{backgroundColor:'#13212c'},headerTintColor:'white'}} />
     <Stack.Screen name="equipos/index" options={{headerShown:false}} />
     <Stack.Screen name="equipos/[id]" options={{title:'Ficha del equipo',headerBackTitle:'Mis equipos'}} />
-  </Stack>;
+  </Stack></>;
 }

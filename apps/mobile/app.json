@@ -33,7 +33,8 @@
           "nfcPermission": "Jaguar lee el identificador de la etiqueta para identificar tu equipo.",
           "includeNdefEntitlement": false
         }
-      ]
+      ],
+      "./plugins/with-nfc-launch"
     ],
     "extra": {
       "router": {

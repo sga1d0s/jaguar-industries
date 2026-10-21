@@ -105,4 +105,15 @@ Xcode rechaza la firma con el Personal Team actual: no admite NFC Tag Reading ni
 
 ### Prueba Android
 
-Instalar el APK desde Descargas, activar NFC y abrir Escanear NFC → Leer etiqueta NFC. Acercar una sola etiqueta a la antena trasera del teléfono y moverla lentamente hasta detectarla. La pantalla muestra los 16 caracteres leídos y abre la ficha si la etiqueta está vinculada desde el panel y el usuario tiene acceso. Etiqueta sin vinculación o sin asignación disponible muestra un aviso. No escribe el chip. Cancelar permite terminar la espera.
+Instalar el APK desde Descargas, activar NFC y abrir Escanear NFC: la lectura empieza automáticamente. El botón permite reintentar tras cancelar o fallar. Acercar una sola etiqueta a la antena trasera del teléfono y moverla lentamente hasta detectarla. La pantalla muestra los 16 caracteres leídos y abre la ficha si la etiqueta está vinculada desde el panel y el usuario tiene acceso. Etiqueta sin vinculación o sin asignación disponible muestra un aviso. No escribe el chip. Cancelar permite terminar la espera.
+
+
+### Lectura automática y apertura desde Android
+
+Al enfocar Escanear NFC se inicia una lectura sin un segundo toque. Se cancela al salir o pasar a segundo plano y se reactiva al regresar. Los reinicios esperan a que termine la sesión anterior; se descartan respuestas de lecturas canceladas.
+
+El plugin local plugins/with-nfc-launch.js registra TECH_DISCOVERED exclusivamente para android.nfc.tech.NfcV (ISO 15693). No exige NDEF ni escribir el chip. Con el móvil desbloqueado y NFC activo, Android puede abrir Jaguar u ofrecerla en el selector de apps al detectar estas etiquetas, aunque Jaguar esté cerrada o en otra pantalla. Si hay otros lectores compatibles, la elección depende del sistema/usuario. El sistema no lanza aplicaciones forzadas a detenerse; abrir Jaguar manualmente después de instalar y retirar/acercar la etiqueta para una nueva detección.
+
+NfcIntents recoge el UID del intent inicial y los eventos posteriores. Lo conserva solo en memoria mientras se valida sesión o se inicia login. La ruta privada /nfc/[uid] consulta los permisos y abre la ficha sin exigir otra lectura. Un UID desconocido o ajeno no concede acceso. startNfc inicializa el módulo una sola vez, para no volver a encolar el intent original al reanudar.
+
+El manifiesto se genera por Expo: dos alias por versión conservan la entrada normal de la app y protegen la entrada NFC con DISPATCH_NFC_MESSAGE desde API37, como exige Android17. Sin cambios API, DB ni escritura en etiquetas. La apertura física desde fuera requiere comprobarse en el dispositivo tras instalar el APK nuevo.
