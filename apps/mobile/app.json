@@ -34,7 +34,20 @@
           "includeNdefEntitlement": false
         }
       ],
-      "./plugins/with-nfc-launch"
+      "./plugins/with-nfc-launch",
+      "react-native-blob-util",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "packagingOptions": {
+              "pickFirst": [
+                "**/libc++_shared.so"
+              ]
+            }
+          }
+        }
+      ]
     ],
     "extra": {
       "router": {

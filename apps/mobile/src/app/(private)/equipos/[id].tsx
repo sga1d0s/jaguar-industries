@@ -1,52 +1,20 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useLocalSearchParams } from 'expo-router';
-import { File } from 'expo-file-system';
-import { useAuth, pdfDirectory } from '../../../lib/session';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useAuth } from '../../../lib/session';
 import { useLiveQuery } from '../../../hooks/use-live-query';
-import { API_URL } from '../../../lib/api';
-import { type EquipmentDetail, type ProductDocument } from '../../../lib/equipment';
+import { type EquipmentDetail } from '../../../lib/equipment';
 import { colors, DemoNotice, ProductPhoto } from '../../../components/equipment-ui';
 
 export default function EquipmentScreen() {
   const {id:rawId}=useLocalSearchParams<{id:string|string[]}>();
   const id=Array.isArray(rawId)?rawId[0]:rawId;
-  const {authenticatedRequest,token,user}=useAuth();
+  const {authenticatedRequest}=useAuth();
   const load=useCallback(async()=>({id,data:await authenticatedRequest<EquipmentDetail>(`/equipment/${encodeURIComponent(id)}`)}),[id,authenticatedRequest]);
   const {data:result,loading,error,refresh}=useLiveQuery(load);
   const retry=()=>{void refresh();};
-  const [opening,setOpening]=useState<string|null>(null);
-  const active=useRef(true);
-  useEffect(()=>{active.current=true;return ()=>{active.current=false;};},[]);
-  async function openDocument(doc:ProductDocument) {
-    if(!user||!token||opening)return;
-    setOpening(doc.id);
-    const directory=pdfDirectory(user.id);
-    // El nombre local no contiene el token. Siempre descargamos con autorización actual;
-    // la caché temporal no ofrece todavía consulta offline ni permisos persistentes.
-    const file=new File(directory,`${doc.id}.pdf`);
-    try {
-      directory.create({idempotent:true,intermediates:true});
-      await File.downloadFileAsync(`${API_URL}/equipment/${id}/documents/${doc.id}`,file,{
-        headers:{Authorization:`Bearer ${token}`},idempotent:true,
-      });
-      // Si el usuario cerró sesión durante la descarga no se abre el archivo recibido.
-      // /auth/me también detecta una revocación ocurrida mientras se descargaba el PDF.
-      if(!active.current){if(file.exists)file.delete();return;}
-      await authenticatedRequest('/auth/me');
-      if(!await file.canPreview())throw new Error('NO_PDF_VIEWER');
-      await file.preview();
-    } catch(error) {
-      if(file.exists)file.delete();
-      // Comprueba si el fallo fue una sesión caducada sin convertir una caída de red en logout.
-      try{await authenticatedRequest('/auth/me');}catch{ /* AuthProvider gestiona un 401. */ }
-      Alert.alert('No se pudo abrir el documento',error instanceof Error&&error.message==='NO_PDF_VIEWER'
-        ?'Instala una aplicación que permita abrir archivos PDF y vuelve a intentarlo.'
-        :'Comprueba tu conexión y que sigues teniendo acceso al equipo.');
-    } finally{setOpening(null);}
-  }
   const data=!error && result?.id===id?result.data:null;
   if(!data)return <SafeAreaView style={styles.safe} edges={['bottom','left','right']}><StatusBar style="dark" />
     <View style={styles.state}>{loading?<ActivityIndicator color={colors.orange}/>:<><Text accessibilityRole="alert" style={styles.copy}>{error||'Equipo no disponible.'}</Text><Pressable style={styles.retry} onPress={retry}><Text style={styles.link}>Reintentar</Text></Pressable></>}</View>
@@ -61,8 +29,8 @@ export default function EquipmentScreen() {
       <View style={styles.card}><Text style={styles.section}>Características</Text><Text style={styles.copy}>{unit.description}</Text>{unit.specifications.map((spec,index)=><View key={index} style={styles.spec}><Text style={styles.specLabel}>{spec.label}</Text><Text style={styles.specValue}>{spec.value}</Text></View>)}<Text style={styles.note}>Datos del catálogo. Consulta el manual completo antes de utilizar un equipo real.</Text></View>
       <View style={styles.card}><Text style={styles.section}>Documentación</Text><Text style={styles.copy}>Documentos comunes del modelo. Requieren conexión.</Text>
         {data.documents.length===0&&<Text style={styles.note}>Todavía no hay documentos disponibles para este modelo.</Text>}
-        {data.documents.map(doc=><Pressable key={doc.id} accessibilityRole="button" accessibilityLabel={`Abrir ${doc.title}`} style={styles.document} disabled={opening!==null} onPress={()=>openDocument(doc)}>
-          <View style={styles.pdf}><Text style={styles.pdfText}>PDF</Text></View><View style={{flex:1}}><Text style={styles.docTitle}>{doc.title}</Text><Text style={styles.docMeta}>Español · {(doc.byteSize/1024/1024).toFixed(1)} MB</Text><Text style={styles.docMeta}>Copia consultada: {new Date(doc.downloadedOn).toLocaleDateString('es-ES')}</Text><Text style={styles.docMeta}>{doc.revision?`Revisión ${doc.revision}`:'Revisión no identificada'}</Text></View>{opening===doc.id?<ActivityIndicator color={colors.orange}/>:<Text style={styles.link}>Abrir</Text>}
+        {data.documents.map(doc=><Pressable key={doc.id} accessibilityRole="button" accessibilityLabel={`Abrir ${doc.title}`} style={styles.document} onPress={()=>router.push({pathname:'/documentos/[equipmentId]/[documentId]',params:{equipmentId:id,documentId:doc.id}})}>
+          <View style={styles.pdf}><Text style={styles.pdfText}>PDF</Text></View><View style={{flex:1}}><Text style={styles.docTitle}>{doc.title}</Text><Text style={styles.docMeta}>Español · {(doc.byteSize/1024/1024).toFixed(1)} MB</Text><Text style={styles.docMeta}>Copia consultada: {new Date(doc.downloadedOn).toLocaleDateString('es-ES')}</Text><Text style={styles.docMeta}>{doc.revision?`Revisión ${doc.revision}`:'Revisión no identificada'}</Text></View><Text style={styles.link}>Abrir</Text>
         </Pressable>)}
         <Text style={styles.note}>El certificado individual de la unidad todavía no está incorporado.</Text>
       </View>

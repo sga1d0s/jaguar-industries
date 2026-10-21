@@ -1,6 +1,6 @@
 # App móvil Jaguar
 
-Una app Expo / React Native para Android e iOS. Login real contra `https://paneljaguar.sgaldos.com/api`, sesión en Expo SecureStore, restauración validada con `/auth/me` y cierre de sesión en servidor. Incluye Mis equipos, ficha de unidad y apertura online de PDF autorizados. Incluye una primera prueba de lectura NFC ISO 15693 en Android e iPhone; vinculación NFC desde el panel y consulta autorizada por UID; consulta offline sigue pendiente.
+Una app Expo / React Native para Android e iOS. Login real contra `https://paneljaguar.sgaldos.com/api`, sesión en Expo SecureStore, restauración validada con `/auth/me` y cierre de sesión en servidor. Incluye Mis equipos, ficha de unidad y visor interno de PDF autorizados. Incluye una primera prueba de lectura NFC ISO 15693 en Android e iPhone; vinculación NFC desde el panel y consulta autorizada por UID; consulta offline sigue pendiente.
 
 ## Desarrollo local (flujo habitual)
 
@@ -71,7 +71,7 @@ La distribución mediante TestFlight/App Store requiere la cuenta Apple Develope
 
 Tras entrar se abre Mis equipos. La lista incluye foto del modelo, referencia, número de serie y venta/alquiler. Las unidades ficticias se identifican con DEMO. La ficha muestra características de la referencia, estado de vinculación NFC y ficha técnica, manual y declaración CE del modelo. No se presenta una inspección o certificado individual como existente.
 
-Los PDF se descargan con la cabecera de sesión a una caché temporal separada por cuenta y se abren con el visor nativo. Hace falta un visor PDF instalado en Android. La caché se limpia al cerrar o invalidar la sesión; no hay todavía biblioteca offline. No se ponen tokens en URL ni se abren enlaces públicos que eviten los permisos. Una sesión caducada vuelve al login; un fallo de red permite reintentar.
+Los PDF se descargan con la cabecera de sesión a una caché temporal separada por cuenta y se muestran dentro de Jaguar con un visor integrado. No hace falta una aplicación PDF externa. La caché se limpia al cerrar o invalidar la sesión; no hay todavía biblioteca offline. No se ponen tokens en URL ni se abren enlaces públicos que eviten los permisos. Una sesión caducada vuelve al login; un fallo de red permite reintentar.
 
 La API necesita la migración y la nueva imagen descritas en `apps/api/README.md`. Para preparar el APK tras añadir una dependencia nativa, ejecutar Expo prebuild y luego `pnpm android:apk`. El APK local sigue usando firma de depuración, que puede no coincidir con el APK EAS instalado previamente: no desinstalar la aplicación existente sin decidir antes si se quieren conservar sus datos.
 
@@ -122,3 +122,12 @@ El manifiesto se genera por Expo: dos alias por versión conservan la entrada no
 ### Interfaz de proximidad NFC
 
 Escanear NFC muestra una ilustración del dorso del móvil junto a una etiqueta física. Se eliminan esquinas de encuadre, anillos de visor, mensajes de prueba/modelos de chip, pasos largos y acceso a ficha DEMO. La instrucción indica parte trasera del teléfono (o superior del iPhone). Estado visible de búsqueda, detección, apertura y error; cancelar durante lectura y reintentar cuando se detiene. Conserva acceso a Mis equipos y UID seleccionable tras detección. No cambia la lógica de lectura automática ni la resolución autorizada.
+
+
+## Visor PDF dentro de Jaguar
+
+Abrir un documento desde la ficha navega a /documentos/[equipmentId]/[documentId]. El visor nativo react-native-pdf permite desplazamiento vertical, zoom con dos dedos/doble toque y muestra página actual/total; Atrás vuelve a la ficha. No necesita una app externa ni envía documentos a un servicio de visualización.
+
+Primero comprueba la ficha y aplicabilidad del documento; descarga mediante Expo FileSystem con Bearer al directorio privado de caché de la cuenta y revalida el acceso tras la descarga. El componente PDF solo recibe el archivo local, sin token ni URL remota. El archivo se retira al salir, al fallar o al llegar tarde una descarga cancelada. Logout sigue limpiando la caché de la cuenta. Las invalidaciones SSE revalidan acceso y retiran el visor si se pierde la asignación. Sigue requiriendo conexión para abrir: no es biblioteca offline.
+
+Dependencias nativas: react-native-pdf 7.0.5 y react-native-blob-util 0.25.1, autolink por Expo prebuild; expo-build-properties configura pickFirst de libc++_shared.so para Android. Requiere APK nuevo. No cambia API, DB ni despliegue del NAS. iOS necesitará sus pods y recompilación propia; no se ha verificado físicamente esta función en iPhone.

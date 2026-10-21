@@ -13,6 +13,7 @@ export default function PrivateLayout() {
     <Stack.Screen name="nfc/[uid]" options={{title:'Etiqueta NFC',headerBackTitle:'Inicio'}} />
     <Stack.Screen name="escanear" options={{title:'Escanear NFC',headerBackTitle:'Inicio',headerStyle:{backgroundColor:'#13212c'},headerTintColor:'white'}} />
     <Stack.Screen name="equipos/index" options={{headerShown:false}} />
+    <Stack.Screen name="documentos/[equipmentId]/[documentId]" options={{title:'Documento PDF',headerBackTitle:'Ficha del equipo'}} />
     <Stack.Screen name="equipos/[id]" options={{title:'Ficha del equipo',headerBackTitle:'Mis equipos'}} />
   </Stack></>;
 }
