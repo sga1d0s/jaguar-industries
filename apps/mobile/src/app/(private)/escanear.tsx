@@ -2,18 +2,16 @@ import { startNfc } from '../../lib/nfc-reader';
 import { useCallback, useRef, useState } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import NfcManager, { NfcTech, NfcError, NfcAdapter } from 'react-native-nfc-manager';
-import { ActivityIndicator, Alert, AppState, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, AppState, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Feather from '@expo/vector-icons/Feather';
 import { useAuth } from '../../lib/session';
-import { type EquipmentPage } from '../../lib/equipment';
 import { errorMessage } from '../../lib/api';
 import { colors } from '../../components/equipment-ui';
 
 export default function ScanNfc(){
   const {authenticatedRequest}=useAuth();
-  const [loading,setLoading]=useState(false);
   const active=useRef(true);
   const [reading,setReading]=useState(false);
   const [uid,setUid]=useState<string|null>(null);
@@ -83,50 +81,60 @@ export default function ScanNfc(){
     });
     return ()=>{active.current=false;subscription.remove();cancelScan();};
   },[requestScan,cancelScan]));
-  // Permite revisar el destino del flujo con una unidad DEMO ya autorizada.
-  // No se genera un UID ni se simula una lectura del hardware del teléfono.
-  async function example(){
-    if(loading)return;
-    setLoading(true);
-    try{
-      let cursor:string|null=null;
-      do{
-        const page:EquipmentPage=await authenticatedRequest<EquipmentPage>(`/equipment${cursor?`?cursor=${cursor}`:''}`);
-        if(!active.current)return;
-        const demo=page.items.find(item=>item.isDemo);
-        if(demo){router.push({pathname:'/equipos/[id]',params:{id:demo.id}});return;}
-        cursor=page.nextCursor;
-      }while(cursor);
-      Alert.alert('No hay una unidad de ejemplo','Puedes consultar los equipos que tienes asignados desde Mis equipos.');
-    }catch(error){Alert.alert('No se pudo abrir el ejemplo',errorMessage(error));}
-    finally{setLoading(false);}
-  }
+  const status=readerError?'No se pudo completar la lectura':uid?'Etiqueta detectada':reading?'Buscando etiqueta…':'Lectura detenida';
+  // La ilustración representa proximidad entre móvil y chip, sin visor de cámara.
   return <SafeAreaView style={styles.safe} edges={['bottom','left','right']}><StatusBar style="light"/>
     <ScrollView contentContainerStyle={styles.content}>
-      <View style={styles.intro}><View style={styles.previewBadge}><View style={styles.dot}/><Text style={styles.previewText}>PRUEBA NFC</Text></View><Text style={styles.title}>Un toque.\nToda la información.</Text><Text style={styles.subtitle}>Acerca el móvil a la etiqueta para identificar tu equipo y abrir su ficha.</Text></View>
-      <View style={styles.reader}>
-        <View pointerEvents="none" style={styles.cornerTopLeft}/><View pointerEvents="none" style={styles.cornerTopRight}/><View pointerEvents="none" style={styles.cornerBottomLeft}/><View pointerEvents="none" style={styles.cornerBottomRight}/>
-        <View style={styles.ringOuter}><View style={styles.ringInner}><View style={styles.phone}><Feather name="smartphone" size={51} color="white"/><View style={styles.tag}><Feather name="radio" size={24} color={colors.orange}/></View></View></View></View>
-        <Text style={styles.readerTitle}>Acerca tu etiqueta</Text><Text style={styles.readerCopy}>Mantén el móvil junto al equipo\nhasta completar la lectura.</Text><View style={styles.readerState}><View style={styles.stateDot}/><Text style={styles.readerStateText}>{reading?'Leyendo etiqueta…':uid?'Lectura completada':'Listo para iniciar la lectura'}</Text></View>
+      <View style={styles.hero}>
+        <View style={styles.illustration} accessible={false} importantForAccessibility="no-hide-descendants">
+          <View style={styles.phoneBack}>
+            <View style={styles.cameras}><View style={styles.camera}/><View style={styles.camera}/></View>
+            <Feather name="radio" size={34} color="#c0d0d8"/>
+          </View>
+          <View style={styles.proximity}><Feather name="wifi" size={25} color={colors.orange}/></View>
+          <View style={styles.physicalTag}><Feather name="radio" size={32} color="white"/><Text style={styles.tagLabel}>NFC</Text></View>
+        </View>
+        <Text style={styles.title}>Acerca el móvil a la etiqueta</Text>
+        <Text style={styles.subtitle}>{Platform.OS==='ios'?'Coloca la parte superior del iPhone junto a la etiqueta del equipo.':'Coloca la parte trasera del teléfono junto a la etiqueta del equipo.'}</Text>
+        <View accessibilityLiveRegion="polite" style={[styles.status,readerError&&styles.statusError]}>
+          {reading&&!readerError?<ActivityIndicator size="small" color={colors.orange}/>:<Feather name={readerError?'alert-circle':uid?'check-circle':'pause-circle'} size={19} color={readerError?'#a33325':colors.orange}/>}
+          <Text style={[styles.statusText,readerError&&styles.errorText]}>{reading&&uid&&!readerError?'Abriendo equipo…':status}</Text>
+        </View>
+        {!readerError&&<Text style={styles.hint}>{reading?'Mantén el móvil cerca unos segundos. Si no la detecta, muévelo lentamente sobre la etiqueta.':'La lectura se inicia automáticamente al entrar. Puedes volver a intentarlo cuando quieras.'}</Text>}
       </View>
-      <View style={styles.notice}><Feather name="info" size={18} color="#906a28"/><Text style={styles.noticeText}>Prueba de lectura ISO 15693: ICODE SLIX2 para pruebas y SupraNail para producción. Vincula la etiqueta a una unidad desde el panel. Al leerla, se abrirá su ficha si tu cuenta tiene acceso.</Text></View>
-      <Pressable accessibilityRole="button" disabled={reading} onPress={requestScan} style={[styles.primary,reading&&{opacity:0.7}]}>
-        {reading?<ActivityIndicator color="white"/>:<Feather name="radio" size={19} color="white"/>}
-        <Text style={styles.primaryText}>{reading?'Esperando etiqueta…':'Volver a leer etiqueta'}</Text>
-      </Pressable>
-      {reading&&<Pressable accessibilityRole="button" onPress={cancelScan} style={styles.secondary}><Text style={styles.secondaryText}>Cancelar lectura</Text></Pressable>}
-      {uid&&<View style={styles.notice}><View style={{flex:1}}><Text style={styles.stepTitle}>Etiqueta detectada · ISO 15693</Text><Text selectable style={styles.value}>{uid}</Text><Text style={styles.noticeText}>Identificador leído del chip. Si no se abre la ficha, comprueba la vinculación en el panel y que tu cuenta tenga acceso a la unidad.</Text></View></View>}
-      {readerError&&<View accessibilityRole="alert" style={styles.notice}><Text selectable style={styles.noticeText}>{readerError}</Text></View>}
-      <Text style={styles.sectionTitle}>Cómo escanear</Text>
-      {[{title:'Acerca el móvil',copy:'Coloca la zona NFC del teléfono junto a la etiqueta de la unidad.'},{title:'Identificamos el equipo',copy:'Comprobaremos qué unidad es y si tu cuenta tiene acceso.'},{title:'Consulta su ficha',copy:'Abre las características, los manuales y la documentación aplicable.'}].map((step,index)=><View style={styles.step} key={step.title}><View style={styles.stepNumber}><Text style={styles.number}>{index+1}</Text></View><View style={{flex:1}}><Text style={styles.stepTitle}>{step.title}</Text><Text style={styles.stepCopy}>{step.copy}</Text></View></View>)}
-      <Pressable accessibilityRole="button" disabled={loading} onPress={example} style={({pressed})=>[styles.primary,(pressed||loading)&&{opacity:0.7}]}>{loading?<ActivityIndicator color="white"/>:<Feather name="box" color="white" size={19}/>}<Text style={styles.primaryText}>{loading?'Abriendo ejemplo…':'Ver ficha de ejemplo'}</Text><View style={styles.demoBadge}><Text style={styles.demoText}>DEMO</Text></View></Pressable>
-      <Pressable accessibilityRole="button" onPress={()=>router.push('/equipos')} style={styles.secondary}><Feather name="search" size={17} color={colors.ink}/><Text style={styles.secondaryText}>Buscar en Mis equipos</Text></Pressable>
-      <Text style={styles.footer}>La ficha de ejemplo pertenece a una unidad de demostración de tu cuenta.</Text>
+      {readerError&&<View accessibilityRole="alert" style={styles.errorCard}><Text style={styles.errorText}>{readerError}</Text></View>}
+      {uid&&<View style={styles.detected}><Text style={styles.detectedLabel}>Identificador de la etiqueta</Text><Text selectable style={styles.uid}>{uid}</Text></View>}
+      {reading?<Pressable accessibilityRole="button" onPress={cancelScan} style={styles.secondary}><Text style={styles.secondaryText}>Cancelar lectura</Text></Pressable>:<Pressable accessibilityRole="button" onPress={requestScan} style={({pressed})=>[styles.primary,pressed&&{opacity:0.75}]}><Feather name="radio" size={20} color="white"/><Text style={styles.primaryText}>Volver a leer etiqueta</Text></Pressable>}
+      <View style={styles.bottom}>
+        <Text style={styles.automatic}>La ficha se abrirá cuando identifiquemos el equipo.</Text>
+        <Pressable accessibilityRole="button" onPress={()=>router.push('/equipos')} style={({pressed})=>[styles.manual,pressed&&{opacity:0.7}]}>
+          <Feather name="search" size={21} color={colors.ink}/><View style={styles.manualCopy}><Text style={styles.manualTitle}>Buscar en Mis equipos</Text><Text style={styles.manualSubtitle}>También puedes encontrarlo por su serie.</Text></View><Feather name="chevron-right" size={19} color={colors.muted}/>
+        </Pressable>
+      </View>
     </ScrollView>
   </SafeAreaView>;
 }
-const corner={position:'absolute' as const,width:29,height:29,borderColor:'#dc6d4b'};
 const styles=StyleSheet.create({
-  value:{fontSize:19,fontWeight:'700',color:colors.ink,marginVertical:12},
-  safe:{flex:1,backgroundColor:'#f5f6f7'},content:{padding:22,paddingBottom:34},intro:{marginBottom:23},previewBadge:{flexDirection:'row',alignItems:'center',gap:6,alignSelf:'flex-start',backgroundColor:'#faeade',paddingHorizontal:10,paddingVertical:7,borderRadius:20,marginBottom:17},dot:{width:5,height:5,borderRadius:3,backgroundColor:colors.orange},previewText:{fontSize:9,fontWeight:'700',letterSpacing:1,color:colors.orange},title:{fontSize:33,lineHeight:39,fontWeight:'800',color:colors.ink,letterSpacing:-0.8},subtitle:{fontSize:14,lineHeight:23,color:colors.muted,marginTop:14},reader:{borderRadius:23,backgroundColor:colors.ink,alignItems:'center',padding:28,paddingVertical:30,overflow:'hidden'},cornerTopLeft:{...corner,left:15,top:15,borderLeftWidth:2,borderTopWidth:2,borderTopLeftRadius:10},cornerTopRight:{...corner,right:15,top:15,borderRightWidth:2,borderTopWidth:2,borderTopRightRadius:10},cornerBottomLeft:{...corner,left:15,bottom:15,borderLeftWidth:2,borderBottomWidth:2,borderBottomLeftRadius:10},cornerBottomRight:{...corner,right:15,bottom:15,borderRightWidth:2,borderBottomWidth:2,borderBottomRightRadius:10},ringOuter:{height:158,width:158,borderRadius:79,borderWidth:1,borderColor:'#304551',alignItems:'center',justifyContent:'center',marginBottom:20},ringInner:{height:124,width:124,borderRadius:62,borderWidth:1,borderColor:'#425460',alignItems:'center',justifyContent:'center'},phone:{padding:10,position:'relative'},tag:{position:'absolute',bottom:8,right:-12,padding:8,borderRadius:12,backgroundColor:'#fff1e9',transform:[{rotate:'-12deg'}]},readerTitle:{fontSize:17,fontWeight:'700',color:'white',textAlign:'center'},readerCopy:{fontSize:12,color:'#b8c8d1',lineHeight:20,textAlign:'center',marginTop:9},readerState:{backgroundColor:'#243742',flexDirection:'row',alignItems:'center',paddingHorizontal:12,paddingVertical:8,borderRadius:20,gap:6,marginTop:20},stateDot:{height:5,width:5,borderRadius:3,backgroundColor:'#d4a46a'},readerStateText:{fontSize:9,color:'#d2c2ad'},notice:{marginTop:16,padding:13,borderRadius:11,backgroundColor:'#fff3dc',flexDirection:'row',alignItems:'center',gap:10},noticeText:{fontSize:11,color:'#795b2c',lineHeight:18,flex:1},sectionTitle:{fontSize:19,fontWeight:'700',color:colors.ink,marginTop:29,marginBottom:20},step:{flexDirection:'row',gap:13,marginBottom:21},stepNumber:{width:29,height:29,borderRadius:10,backgroundColor:'#e6edf1',alignItems:'center',justifyContent:'center'},number:{color:colors.ink,fontSize:12,fontWeight:'700'},stepTitle:{fontSize:14,color:colors.ink,fontWeight:'700'},stepCopy:{fontSize:12,lineHeight:20,color:colors.muted,marginTop:5},primary:{paddingVertical:17,paddingHorizontal:16,borderRadius:13,backgroundColor:colors.orange,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:9,marginTop:8},primaryText:{fontSize:14,fontWeight:'700',color:'white'},demoBadge:{backgroundColor:'#ffffff26',borderRadius:5,paddingHorizontal:6,paddingVertical:4},demoText:{fontSize:8,color:'white',fontWeight:'800'},secondary:{padding:18,flexDirection:'row',justifyContent:'center',alignItems:'center',gap:9},secondaryText:{fontSize:13,fontWeight:'600',color:colors.ink},footer:{fontSize:10,color:colors.muted,textAlign:'center',lineHeight:17,paddingHorizontal:15},
+  safe:{flex:1,backgroundColor:'#f5f6f7'},
+  content:{flexGrow:1,padding:24,paddingTop:30,paddingBottom:28,width:'100%',maxWidth:480,alignSelf:'center'},
+  hero:{alignItems:'center'},
+  illustration:{height:192,width:230,alignItems:'center',justifyContent:'center',marginBottom:20},
+  phoneBack:{height:158,width:94,borderRadius:22,backgroundColor:colors.ink,alignItems:'center',justifyContent:'center',transform:[{rotate:'-9deg'}],marginRight:61},
+  cameras:{position:'absolute',top:14,left:12,gap:5},camera:{width:9,height:9,borderRadius:5,backgroundColor:'#435967'},
+  proximity:{position:'absolute',left:125,top:70,transform:[{rotate:'-90deg'}]},
+  physicalTag:{position:'absolute',right:4,top:90,height:74,width:66,borderRadius:14,backgroundColor:colors.orange,alignItems:'center',justifyContent:'center',gap:3,transform:[{rotate:'8deg'}]},
+  tagLabel:{color:'white',fontSize:9,fontWeight:'800',letterSpacing:1},
+  title:{fontSize:27,lineHeight:34,fontWeight:'800',textAlign:'center',color:colors.ink,letterSpacing:-0.5},
+  subtitle:{fontSize:15,lineHeight:23,textAlign:'center',color:colors.muted,marginTop:12},
+  status:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:9,backgroundColor:'#fbe9e1',borderRadius:24,paddingHorizontal:16,paddingVertical:12,marginTop:26,maxWidth:'100%'},
+  statusText:{fontSize:14,fontWeight:'600',color:'#a73a20',flexShrink:1},statusError:{backgroundColor:'#fae9e6'},
+  hint:{fontSize:13,lineHeight:21,color:colors.muted,textAlign:'center',marginTop:17},
+  errorCard:{backgroundColor:'#fae9e6',padding:16,borderRadius:12,marginTop:18},errorText:{color:'#a33325',fontSize:14,lineHeight:22},
+  detected:{alignItems:'center',paddingTop:18},detectedLabel:{fontSize:12,color:colors.muted},uid:{fontSize:16,fontWeight:'600',color:colors.ink,marginTop:6},
+  primary:{paddingVertical:17,paddingHorizontal:16,borderRadius:13,backgroundColor:colors.orange,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:9,marginTop:22},
+  primaryText:{fontSize:15,fontWeight:'700',color:'white'},
+  secondary:{padding:18,alignItems:'center',marginTop:8},secondaryText:{fontSize:14,fontWeight:'600',color:colors.ink},
+  bottom:{marginTop:'auto',paddingTop:30},automatic:{fontSize:12,lineHeight:19,color:colors.muted,textAlign:'center',marginBottom:22},
+  manual:{flexDirection:'row',alignItems:'center',gap:12,borderTopWidth:1,borderTopColor:'#dfe5e8',paddingTop:22},
+  manualCopy:{flex:1},manualTitle:{fontSize:14,fontWeight:'700',color:colors.ink},manualSubtitle:{fontSize:12,lineHeight:19,color:colors.muted,marginTop:4},
 });

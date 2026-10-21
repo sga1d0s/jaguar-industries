@@ -75,13 +75,13 @@ Los PDF se descargan con la cabecera de sesión a una caché temporal separada p
 
 La API necesita la migración y la nueva imagen descritas en `apps/api/README.md`. Para preparar el APK tras añadir una dependencia nativa, ejecutar Expo prebuild y luego `pnpm android:apk`. El APK local sigue usando firma de depuración, que puede no coincidir con el APK EAS instalado previamente: no desinstalar la aplicación existente sin decidir antes si se quieren conservar sus datos.
 
-## Home y vista previa NFC
+## Home y lectura NFC
 
 Tras iniciar o restaurar sesión se abre `/inicio`: perfil, resumen de unidades en propiedad/alquiler y nueve accesos. Mis equipos y Documentación usan las rutas existentes; los módulos sin implementar se marcan Próximamente. No se muestran recuentos inventados de avisos ni de estado operativo.
 
 El resumen usa `/equipment/summary`. Por compatibilidad con la API anterior, si esa ruta devuelve 404 se calcula desde la lista únicamente cuando cabe completa en una página; no se presentan recuentos parciales como totales. El error de actualización se muestra sin afirmar que exista modo offline.
 
-`/escanear` permite iniciar una sesión nativa ISO 15693 en Android (NfcV) e iPhone (Iso15693IOS) mediante react-native-nfc-manager 4. Muestra el UID hexadecimal real de 8 bytes; no escribe etiquetas. Tras leer, consulta /equipment/by-nfc/:uid y abre la ficha autorizada. La asociación se realiza desde el panel. Incluye cancelación, errores y cierre al salir o pasar a segundo plano. ICODE SLIX2 se usa para pruebas y SupraNail 13248 para producción; ambas requieren validación física. La búsqueda y ficha DEMO siguen disponibles.
+`/escanear` permite iniciar una sesión nativa ISO 15693 en Android (NfcV) e iPhone (Iso15693IOS) mediante react-native-nfc-manager 4. Muestra el UID hexadecimal real de 8 bytes; no escribe etiquetas. Tras leer, consulta /equipment/by-nfc/:uid y abre la ficha autorizada. La asociación se realiza desde el panel. Incluye cancelación, errores y cierre al salir o pasar a segundo plano. ICODE SLIX2 se usa para pruebas y SupraNail 13248 para producción; ambas requieren validación física. La búsqueda manual sigue disponible desde esa pantalla.
 
 La configuración Expo añade NFCReaderUsageDescription en español y el entitlement TAG. Requiere recompilar iOS y un perfil de firma que admita NFC Tag Reading. La instalación puede realizarse por Wi-Fi con el iPhone emparejado en Xcode. Una actualización de JavaScript por sí sola no incorpora el módulo nativo. Android comprueba si NFC está activado y utiliza modo lector NfcV sin exigir NDEF, para leer etiquetas vacías. El UID leído se envía al backend, que normaliza los órdenes de bytes para guardar una clave convencional E0. Vector verificado en Android: 24369B21090104E0 → E0040109219B3624. La lectura física iOS sigue pendiente por la firma.
 
@@ -117,3 +117,8 @@ El plugin local plugins/with-nfc-launch.js registra TECH_DISCOVERED exclusivamen
 NfcIntents recoge el UID del intent inicial y los eventos posteriores. Lo conserva solo en memoria mientras se valida sesión o se inicia login. La ruta privada /nfc/[uid] consulta los permisos y abre la ficha sin exigir otra lectura. Un UID desconocido o ajeno no concede acceso. startNfc inicializa el módulo una sola vez, para no volver a encolar el intent original al reanudar.
 
 El manifiesto se genera por Expo: dos alias por versión conservan la entrada normal de la app y protegen la entrada NFC con DISPATCH_NFC_MESSAGE desde API37, como exige Android17. Sin cambios API, DB ni escritura en etiquetas. La apertura física desde fuera requiere comprobarse en el dispositivo tras instalar el APK nuevo.
+
+
+### Interfaz de proximidad NFC
+
+Escanear NFC muestra una ilustración del dorso del móvil junto a una etiqueta física. Se eliminan esquinas de encuadre, anillos de visor, mensajes de prueba/modelos de chip, pasos largos y acceso a ficha DEMO. La instrucción indica parte trasera del teléfono (o superior del iPhone). Estado visible de búsqueda, detección, apertura y error; cancelar durante lectura y reintentar cuando se detiene. Conserva acceso a Mis equipos y UID seleccionable tras detección. No cambia la lógica de lectura automática ni la resolución autorizada.
