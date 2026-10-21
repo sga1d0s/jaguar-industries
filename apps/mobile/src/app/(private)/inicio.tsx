@@ -11,7 +11,7 @@ import { colors } from '../../components/equipment-ui';
 
 type Feature={title:string;subtitle:string;icon:ComponentProps<typeof Feather>['name'];action:'equipment'|'scan'|'documents'|'help'|'soon';badge?:string;description?:string};
 const features:Feature[]=[
-  {title:'Escanear NFC',subtitle:'Identifica tu equipo',icon:'radio',action:'scan',badge:'Vista previa'},
+  {title:'Escanear NFC',subtitle:'Identifica tu equipo',icon:'radio',action:'scan',badge:'Prueba NFC'},
   {title:'Mis equipos',subtitle:'Consulta tus unidades',icon:'box',action:'equipment'},
   {title:'Documentación',subtitle:'Manuales y fichas',icon:'file-text',action:'documents'},
   {title:'Avisos',subtitle:'Novedades de tus equipos',icon:'bell',action:'soon',description:'Aquí podrás consultar avisos relacionados con tus equipos.'},
@@ -39,7 +39,7 @@ export default function HomeScreen(){
     if(feature.action==='documents')return router.push({pathname:'/equipos',params:{mode:'documents'}});
     // Los módulos futuros se explican sin simular altas, alertas o inspecciones inexistentes.
     if(feature.action==='soon')return Alert.alert(`${feature.title} · próximamente`,feature.description);
-    Alert.alert('Tu espacio Jaguar','En Mis equipos encontrarás tus unidades asignadas. Abre una ficha para consultar sus características, manual y declaración CE. La lectura NFC y el modo sin conexión llegarán más adelante.');
+    Alert.alert('Tu espacio Jaguar','En Mis equipos encontrarás tus unidades asignadas. Abre una ficha para consultar sus características, manual y declaración CE. En Escanear NFC puedes probar la lectura de etiquetas. La vinculación con equipos y el modo sin conexión siguen pendientes.');
   }
   const initials=(user?.name||'J').trim().split(/\s+/).slice(0,2).map(part=>part[0]).join('').toUpperCase();
   return <SafeAreaView style={styles.safe} edges={['top','left','right']}><StatusBar style="light"/>

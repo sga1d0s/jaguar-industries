@@ -49,6 +49,9 @@ importers:
       react-native:
         specifier: 0.88.0
         version: 0.88.0(@babel/core@7.29.7)(@react-native/metro-config@0.88.0(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.3.0)
+      react-native-nfc-manager:
+        specifier: ^4.0.0
+        version: 4.0.0(@expo/config-plugins@58.0.9(typescript@6.0.3))(react-native@0.88.0(@babel/core@7.29.7)(@react-native/metro-config@0.88.0(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
       react-native-safe-area-context:
         specifier: ~5.10.1
         version: 5.10.1(react-native@0.88.0(@babel/core@7.29.7)(@react-native/metro-config@0.88.0(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
@@ -3005,6 +3008,16 @@ packages:
     peerDependencies:
       react: '*'
       react-native: '*'
+
+  react-native-nfc-manager@4.0.0:
+    resolution: {integrity: sha512-l1vcxDQ/qeVbY432mLwJfPRtZfRQeHe8Al7sXumFX6DQWynm97WGY2c6queMpwSYXx4xP5Eqe5DBR7ErLL8QQg==}
+    peerDependencies:
+      '@expo/config-plugins': '*'
+      react: '>=18.2'
+      react-native: '>=0.76'
+    peerDependenciesMeta:
+      '@expo/config-plugins':
+        optional: true
 
   react-native-reanimated@4.7.1:
     resolution: {integrity: sha512-HviDFSZ6V4KTRsrLS6hRbBJ4j63l/L8a5az0EoWdJwaMLYnBNyYISTDxwXpEYkMbAbLzCMCviIdiOxXHYQWcNA==}
@@ -7114,6 +7127,13 @@ snapshots:
     dependencies:
       react: 19.3.0
       react-native: 0.88.0(@babel/core@7.29.7)(@react-native/metro-config@0.88.0(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.3.0)
+
+  react-native-nfc-manager@4.0.0(@expo/config-plugins@58.0.9(typescript@6.0.3))(react-native@0.88.0(@babel/core@7.29.7)(@react-native/metro-config@0.88.0(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0):
+    dependencies:
+      react: 19.3.0
+      react-native: 0.88.0(@babel/core@7.29.7)(@react-native/metro-config@0.88.0(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.3.0)
+    optionalDependencies:
+      '@expo/config-plugins': 58.0.9(typescript@6.0.3)
 
   react-native-reanimated@4.7.1(react-native-worklets@0.13.0(@babel/core@7.29.7)(@react-native/metro-config@0.88.0(@babel/core@7.29.7))(react-native@0.88.0(@babel/core@7.29.7)(@react-native/metro-config@0.88.0(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.0(@babel/core@7.29.7)(@react-native/metro-config@0.88.0(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0):
     dependencies:
