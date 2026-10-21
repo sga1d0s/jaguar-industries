@@ -67,3 +67,10 @@ Después integrar los cambios mediante dev → main para publicar API y web por 
 ## Proxy de actualizaciones SSE
 
 La ubicación exacta /api/events reenvía el canal autenticado de la app a la API con buffering/caché desactivados y timeout60s. Los comentarios keepalive llegan cada15s. Desplegar esta configuración junto con la API SSE; no cambia el origen del túnel Cloudflare ni necesita abrir puertos.
+
+
+## Vincular una etiqueta NFC
+
+En Unidades, una unidad no DEMO sin etiqueta muestra **Vincular etiqueta NFC**. El formulario identifica el modelo y la serie para revisar el destino. Introducir el UID leído por Jaguar (por ejemplo `24369B21090104E0`) y guardar. El panel muestra después el UID convencional `E0040109219B3624`. No se escribe el chip. Una etiqueta solo identifica una unidad, y esta versión no sustituye asociaciones existentes.
+
+Para abrir la ficha desde el móvil, la unidad debe estar asignada a un cliente del que el usuario sea miembro. El permiso de panel no concede por sí solo acceso a la ficha móvil. Se requieren API/panel actualizados y el permiso de columna descrito en apps/api/README.md.

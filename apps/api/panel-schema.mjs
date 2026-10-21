@@ -22,6 +22,7 @@ export async function migratePanel(client) {
     GRANT UPDATE(ends_at) ON equipment_assignments TO jaguar_app;
   `);
   await migrateClientAccess(client);
+  await migrateNfc(client);
 }
 
 // Permite altas desde el panel sin dar permiso de actualizar cuentas existentes
@@ -29,4 +30,9 @@ export async function migratePanel(client) {
 export async function migrateClientAccess(client) {
   await client.query(`GRANT INSERT(name,email,password_hash) ON users TO jaguar_app;
     GRANT INSERT(user_id,organization_id) ON memberships TO jaguar_app;`);
+}
+
+// Permiso de columna: vincular etiquetas no permite alterar serie, modelo ni DEMO.
+export async function migrateNfc(client) {
+  await client.query('GRANT UPDATE(nfc_uid) ON equipment TO jaguar_app');
 }

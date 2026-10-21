@@ -1,6 +1,6 @@
 # App móvil Jaguar
 
-Una app Expo / React Native para Android e iOS. Login real contra `https://paneljaguar.sgaldos.com/api`, sesión en Expo SecureStore, restauración validada con `/auth/me` y cierre de sesión en servidor. Incluye Mis equipos, ficha de unidad y apertura online de PDF autorizados. Incluye una primera prueba de lectura NFC ISO 15693 en Android e iPhone; vinculación NFC y consulta offline siguen pendientes.
+Una app Expo / React Native para Android e iOS. Login real contra `https://paneljaguar.sgaldos.com/api`, sesión en Expo SecureStore, restauración validada con `/auth/me` y cierre de sesión en servidor. Incluye Mis equipos, ficha de unidad y apertura online de PDF autorizados. Incluye una primera prueba de lectura NFC ISO 15693 en Android e iPhone; vinculación NFC desde el panel y consulta autorizada por UID; consulta offline sigue pendiente.
 
 ## Desarrollo local (flujo habitual)
 
@@ -81,9 +81,9 @@ Tras iniciar o restaurar sesión se abre `/inicio`: perfil, resumen de unidades 
 
 El resumen usa `/equipment/summary`. Por compatibilidad con la API anterior, si esa ruta devuelve 404 se calcula desde la lista únicamente cuando cabe completa en una página; no se presentan recuentos parciales como totales. El error de actualización se muestra sin afirmar que exista modo offline.
 
-`/escanear` permite iniciar una sesión nativa ISO 15693 en Android (NfcV) e iPhone (Iso15693IOS) mediante react-native-nfc-manager 4. Muestra el UID hexadecimal real de 8 bytes; no escribe, no vincula unidades ni consulta el backend por UID. Incluye cancelación, errores y cierre al salir o pasar a segundo plano. ICODE SLIX2 se usa para pruebas y SupraNail 13248 para producción; ambas requieren validación física. La búsqueda y ficha DEMO siguen disponibles.
+`/escanear` permite iniciar una sesión nativa ISO 15693 en Android (NfcV) e iPhone (Iso15693IOS) mediante react-native-nfc-manager 4. Muestra el UID hexadecimal real de 8 bytes; no escribe etiquetas. Tras leer, consulta /equipment/by-nfc/:uid y abre la ficha autorizada. La asociación se realiza desde el panel. Incluye cancelación, errores y cierre al salir o pasar a segundo plano. ICODE SLIX2 se usa para pruebas y SupraNail 13248 para producción; ambas requieren validación física. La búsqueda y ficha DEMO siguen disponibles.
 
-La configuración Expo añade NFCReaderUsageDescription en español y el entitlement TAG. Requiere recompilar iOS y un perfil de firma que admita NFC Tag Reading. La instalación puede realizarse por Wi-Fi con el iPhone emparejado en Xcode. Una actualización de JavaScript por sí sola no incorpora el módulo nativo. Android comprueba si NFC está activado y utiliza modo lector NfcV sin exigir NDEF, para leer etiquetas vacías. El UID se presenta en el orden entregado por cada sistema; antes de vinculación multiplataforma hay que verificar y normalizar el orden de bytes con la misma etiqueta física.
+La configuración Expo añade NFCReaderUsageDescription en español y el entitlement TAG. Requiere recompilar iOS y un perfil de firma que admita NFC Tag Reading. La instalación puede realizarse por Wi-Fi con el iPhone emparejado en Xcode. Una actualización de JavaScript por sí sola no incorpora el módulo nativo. Android comprueba si NFC está activado y utiliza modo lector NfcV sin exigir NDEF, para leer etiquetas vacías. El UID leído se envía al backend, que normaliza los órdenes de bytes para guardar una clave convencional E0. Vector verificado en Android: 24369B21090104E0 → E0040109219B3624. La lectura física iOS sigue pendiente por la firma.
 
 ## Fotografías del catálogo
 
@@ -105,4 +105,4 @@ Xcode rechaza la firma con el Personal Team actual: no admite NFC Tag Reading ni
 
 ### Prueba Android
 
-Instalar el APK desde Descargas, activar NFC y abrir Escanear NFC → Leer etiqueta NFC. Acercar una sola etiqueta a la antena trasera del teléfono y moverla lentamente hasta detectarla. La prueba muestra 16 caracteres hexadecimales; no escribe ni vincula la etiqueta a una unidad. Cancelar permite terminar la espera.
+Instalar el APK desde Descargas, activar NFC y abrir Escanear NFC → Leer etiqueta NFC. Acercar una sola etiqueta a la antena trasera del teléfono y moverla lentamente hasta detectarla. La pantalla muestra los 16 caracteres leídos y abre la ficha si la etiqueta está vinculada desde el panel y el usuario tiene acceso. Etiqueta sin vinculación o sin asignación disponible muestra un aviso. No escribe el chip. Cancelar permite terminar la espera.

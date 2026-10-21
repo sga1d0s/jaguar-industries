@@ -84,7 +84,7 @@ function shell(content) {
 function badge(text,kind='') { return `<span class="badge ${kind}">${esc(text)}</span>`; }
 function unitRow(unit) {
   const status=unit.assignment_kind==='sale'?'Vendido':unit.assignment_kind==='rental'?'En alquiler':'En Jaguar';
-  return `<tr><td><strong>${esc(unit.variant_name)}</strong><small>${esc(unit.reference)} · ${esc(unit.model_name)}</small></td><td class="serial">${esc(unit.serial_number)}${unit.is_demo?badge('DEMO','demo'):''}</td><td>${esc(unit.client_name || '—')}${data.clients.find(c=>c.id===unit.client_id)?.is_demo?' '+badge('DEMO','demo'):''}</td><td>${badge(status,unit.assignment_kind || '')}</td><td>${unit.nfc_linked?badge('Vinculada'): '<span class="muted">Sin etiqueta</span>'}</td><td>${unit.is_demo?'<span class="muted">Demostración</span>':unit.assignment_kind==='rental'?`<button class="text-button" data-end="${unit.assignment_id}">Finalizar alquiler</button>`:!unit.assignment_id?`<button class="text-button" data-assign="${unit.id}">Asignar →</button>`:'<span class="muted">Venta registrada</span>'}</td></tr>`;
+  return `<tr><td><strong>${esc(unit.variant_name)}</strong><small>${esc(unit.reference)} · ${esc(unit.model_name)}</small></td><td class="serial">${esc(unit.serial_number)}${unit.is_demo?badge('DEMO','demo'):''}</td><td>${esc(unit.client_name || '—')}${data.clients.find(c=>c.id===unit.client_id)?.is_demo?' '+badge('DEMO','demo'):''}</td><td>${badge(status,unit.assignment_kind || '')}</td><td>${unit.nfc_linked?`${badge('Vinculada')}<small class="serial">${esc(unit.nfc_uid)}</small>`:unit.is_demo?'<span class="muted">Sin etiqueta</span>':`<button class="text-button" data-nfc="${unit.id}">Vincular etiqueta NFC</button>`}</td><td>${unit.is_demo?'<span class="muted">Demostración</span>':unit.assignment_kind==='rental'?`<button class="text-button" data-end="${unit.assignment_id}">Finalizar alquiler</button>`:!unit.assignment_id?`<button class="text-button" data-assign="${unit.id}">Asignar →</button>`:'<span class="muted">Venta registrada</span>'}</td></tr>`;
 }
 function unitTable(units) {
   return units.length?`<div class="table-scroll"><table><thead><tr><th>Equipo / referencia</th><th>N.º de serie</th><th>Cliente</th><th>Situación</th><th>NFC</th><th>Gestión</th></tr></thead><tbody>${units.map(unitRow).join('')}</tbody></table></div>`:'<div class="empty"><h3>No hay unidades que mostrar</h3><p>Registra una unidad desde una referencia del catálogo.</p></div>';
@@ -128,6 +128,7 @@ function render() {
 function bindContent() {
   document.querySelectorAll('[data-variant]').forEach(b=>b.onclick=()=>openForm('variant',b.dataset.variant));
   document.querySelectorAll('[data-assign]').forEach(b=>b.onclick=()=>openForm('assignment',b.dataset.assign));
+  document.querySelectorAll('[data-nfc]').forEach(b=>b.onclick=()=>openForm('nfc',b.dataset.nfc));
   document.querySelectorAll('[data-end]').forEach(b=>b.onclick=()=>openForm('end',b.dataset.end));
   document.querySelectorAll('[data-document]').forEach(b=>b.onclick=async()=>{
     b.disabled=true;
@@ -149,10 +150,11 @@ function openForm(kind,target) {
     variant:['Nueva referencia','Añade una variante al modelo seleccionado.',field('Referencia comercial','reference',80)+field('Nombre de la variante','name')+'<label>Características<textarea name="specifications" rows="5" placeholder="Capacidad: 1.000 kg&#10;Peso: 11 kg"></textarea><small>Una por línea, con formato Etiqueta: valor. Hasta 30.</small></label>'],
     unit:['Registrar unidad','La unidad se registra como propiedad de Jaguar, sin etiqueta NFC hasta su vinculación física.',`<label>Referencia del catálogo<select name="variantId" required><option value="">Selecciona una referencia</option>${data.models.flatMap(m=>m.variants.map(v=>`<option value="${v.id}">${esc(v.reference)} · ${esc(v.name)}</option>`)).join('')}</select></label>`+field('Número de serie','serialNumber',150)],
     assignment:['Asignar unidad','La venta transfiere la propiedad al cliente. El alquiler mantiene a Jaguar como propietario.',`<label>Cliente<select name="clientId" required><option value="">Selecciona un cliente</option>${data.clients.map(c=>`<option value="${c.id}">${esc(c.name)}${c.is_demo?' · DEMO':''}</option>`).join('')}</select></label><label>Tipo de asignación<select name="kind" required><option value="rental">Alquiler</option><option value="sale">Venta</option></select></label><p class="form-note">La asignación empieza ahora. Una venta se registra como definitiva; revisa cliente y unidad antes de guardar.</p>`],
+    nfc:['Vincular etiqueta NFC','Introduce el UID mostrado por Jaguar al leer la etiqueta física. Se admiten ambos órdenes de bytes; no hace falta escribir en el chip. Una etiqueta solo puede identificar una unidad.',field('UID ISO 15693','uid',64,'autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="24369B21090104E0"')],
     end:['Finalizar alquiler','El cliente dejará de tener acceso a esta unidad mediante este alquiler. La unidad vuelve a quedar disponible en Jaguar.','<p>Se conservará el registro del alquiler con su fecha de finalización.</p>'],
   };
   const [title,note,fields]=definitions[kind];
-  const unit=kind==='assignment'?data.units.find(u=>u.id===target):null;
+  const unit=['assignment','nfc'].includes(kind)?data.units.find(u=>u.id===target):null;
   const dialog=document.createElement('dialog'); dialog.className='form-dialog';
   dialog.innerHTML=`<form><div class="dialog-heading"><h2>${title}</h2><button type="button" id="close-dialog" aria-label="Cerrar">×</button></div><p class="muted">${note}</p>${unit?`<p><strong>${esc(unit.variant_name)}</strong><br>Serie: ${esc(unit.serial_number)}</p>`:''}${fields}<p class="error" role="alert"></p><div class="dialog-actions"><button type="button" id="cancel-dialog">Cancelar</button><button type="submit" class="primary">${kind==='end'?'Finalizar alquiler':'Guardar'}</button></div></form>`;
   document.body.append(dialog); dialog.showModal();
@@ -177,7 +179,7 @@ function openForm(kind,target) {
         delete input.createAppAccess; delete input.userName; delete input.userEmail; delete input.userPassword;
       }
       pending=true; dialog.querySelectorAll('button').forEach(b=>b.disabled=true);
-      const endpoint={client:'clients',model:'models',variant:'variants',unit:'units',assignment:'assignments',end:`assignments/${target}/end`}[kind];
+      const endpoint={client:'clients',model:'models',variant:'variants',unit:'units',assignment:'assignments',end:`assignments/${target}/end`,nfc:`units/${target}/nfc`}[kind];
       await api(`/panel/${endpoint}`,{method:'POST',body:JSON.stringify(input)});
       pending=false; dialog.close(); await load();
     } catch(error) { if(!user){dialog.close();return;} dialog.querySelector('.error').textContent=error.message; }

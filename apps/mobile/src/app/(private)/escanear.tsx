@@ -52,14 +52,20 @@ export default function ScanNfc(){
       }
       if(active.current)setUid(identifier);
       if(Platform.OS==='ios')await NfcManager.setAlertMessageIOS('Etiqueta leída correctamente.');
+      // Finaliza el acceso al chip antes de consultar el servidor. El UID identifica
+      // la unidad; la API sigue comprobando membresía y asignación en cada lectura.
+      await NfcManager.cancelTechnologyRequest();
+      if(!active.current)return;
+      const unit=await authenticatedRequest<{id:string;uid:string}>(`/equipment/by-nfc/${identifier}`);
+      if(active.current)router.push({pathname:'/equipos/[id]',params:{id:unit.id}});
     }catch(error){
       if(active.current&&!(error instanceof NfcError.UserCancel)){
-        setReaderError(error instanceof NfcError.Timeout?'Se agotó el tiempo. Acerca el móvil a la etiqueta y reintenta.':errorMessage(error));
+        setReaderError(error instanceof NfcError.Timeout?'Se agotó el tiempo. Acerca el móvil a la etiqueta y reintenta.':error instanceof Error?error.message:errorMessage(error));
       }
     }finally{
       await NfcManager.cancelTechnologyRequest().catch(()=>{});
       busy.current=false;
-      if(active.current)setReading(false);
+      setReading(false);
     }
   }
   // Permite revisar el destino del flujo con una unidad DEMO ya autorizada.
@@ -82,21 +88,21 @@ export default function ScanNfc(){
   }
   return <SafeAreaView style={styles.safe} edges={['bottom','left','right']}><StatusBar style="light"/>
     <ScrollView contentContainerStyle={styles.content}>
-      <View style={styles.intro}><View style={styles.previewBadge}><View style={styles.dot}/><Text style={styles.previewText}>PRUEBA NFC</Text></View><Text style={styles.title}>Un toque.\nToda la información.</Text><Text style={styles.subtitle}>Prueba la lectura de tu etiqueta acercando el móvil. Verás su identificador al detectarla.</Text></View>
+      <View style={styles.intro}><View style={styles.previewBadge}><View style={styles.dot}/><Text style={styles.previewText}>PRUEBA NFC</Text></View><Text style={styles.title}>Un toque.\nToda la información.</Text><Text style={styles.subtitle}>Acerca el móvil a la etiqueta para identificar tu equipo y abrir su ficha.</Text></View>
       <View style={styles.reader}>
         <View pointerEvents="none" style={styles.cornerTopLeft}/><View pointerEvents="none" style={styles.cornerTopRight}/><View pointerEvents="none" style={styles.cornerBottomLeft}/><View pointerEvents="none" style={styles.cornerBottomRight}/>
         <View style={styles.ringOuter}><View style={styles.ringInner}><View style={styles.phone}><Feather name="smartphone" size={51} color="white"/><View style={styles.tag}><Feather name="radio" size={24} color={colors.orange}/></View></View></View></View>
         <Text style={styles.readerTitle}>Acerca tu etiqueta</Text><Text style={styles.readerCopy}>Mantén el móvil junto al equipo\nhasta completar la lectura.</Text><View style={styles.readerState}><View style={styles.stateDot}/><Text style={styles.readerStateText}>{reading?'Leyendo etiqueta…':uid?'Lectura completada':'Listo para iniciar la lectura'}</Text></View>
       </View>
-      <View style={styles.notice}><Feather name="info" size={18} color="#906a28"/><Text style={styles.noticeText}>Prueba de lectura ISO 15693: ICODE SLIX2 para pruebas y SupraNail para producción. La vinculación con equipos se añadirá en el siguiente paso.</Text></View>
+      <View style={styles.notice}><Feather name="info" size={18} color="#906a28"/><Text style={styles.noticeText}>Prueba de lectura ISO 15693: ICODE SLIX2 para pruebas y SupraNail para producción. Vincula la etiqueta a una unidad desde el panel. Al leerla, se abrirá su ficha si tu cuenta tiene acceso.</Text></View>
       <Pressable accessibilityRole="button" disabled={reading} onPress={scan} style={[styles.primary,reading&&{opacity:0.7}]}>
         {reading?<ActivityIndicator color="white"/>:<Feather name="radio" size={19} color="white"/>}
         <Text style={styles.primaryText}>{reading?'Esperando etiqueta…':'Leer etiqueta NFC'}</Text>
       </Pressable>
       {reading&&<Pressable accessibilityRole="button" onPress={()=>void NfcManager.cancelTechnologyRequest().catch(()=>{})} style={styles.secondary}><Text style={styles.secondaryText}>Cancelar lectura</Text></Pressable>}
-      {uid&&<View style={styles.notice}><View style={{flex:1}}><Text style={styles.stepTitle}>Etiqueta detectada · ISO 15693</Text><Text selectable style={styles.value}>{uid}</Text><Text style={styles.noticeText}>Identificador leído del chip, en el orden entregado por el sistema del móvil. Esta prueba no vincula la etiqueta a un equipo.</Text></View></View>}
+      {uid&&<View style={styles.notice}><View style={{flex:1}}><Text style={styles.stepTitle}>Etiqueta detectada · ISO 15693</Text><Text selectable style={styles.value}>{uid}</Text><Text style={styles.noticeText}>Identificador leído del chip. Si no se abre la ficha, comprueba la vinculación en el panel y que tu cuenta tenga acceso a la unidad.</Text></View></View>}
       {readerError&&<View accessibilityRole="alert" style={styles.notice}><Text selectable style={styles.noticeText}>{readerError}</Text></View>}
-      <Text style={styles.sectionTitle}>Recorrido previsto</Text>
+      <Text style={styles.sectionTitle}>Cómo escanear</Text>
       {[{title:'Acerca el móvil',copy:'Coloca la zona NFC del teléfono junto a la etiqueta de la unidad.'},{title:'Identificamos el equipo',copy:'Comprobaremos qué unidad es y si tu cuenta tiene acceso.'},{title:'Consulta su ficha',copy:'Abre las características, los manuales y la documentación aplicable.'}].map((step,index)=><View style={styles.step} key={step.title}><View style={styles.stepNumber}><Text style={styles.number}>{index+1}</Text></View><View style={{flex:1}}><Text style={styles.stepTitle}>{step.title}</Text><Text style={styles.stepCopy}>{step.copy}</Text></View></View>)}
       <Pressable accessibilityRole="button" disabled={loading} onPress={example} style={({pressed})=>[styles.primary,(pressed||loading)&&{opacity:0.7}]}>{loading?<ActivityIndicator color="white"/>:<Feather name="box" color="white" size={19}/>}<Text style={styles.primaryText}>{loading?'Abriendo ejemplo…':'Ver ficha de ejemplo'}</Text><View style={styles.demoBadge}><Text style={styles.demoText}>DEMO</Text></View></Pressable>
       <Pressable accessibilityRole="button" onPress={()=>router.push('/equipos')} style={styles.secondary}><Feather name="search" size={17} color={colors.ink}/><Text style={styles.secondaryText}>Buscar en Mis equipos</Text></Pressable>

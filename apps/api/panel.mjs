@@ -1,3 +1,4 @@
+import { normalizeNfcUid } from './nfc.mjs';
 import { equipmentChanged } from './events.mjs';
 import { pool } from './db.mjs';
 import { hashPassword } from './auth.mjs';
@@ -59,7 +60,7 @@ export async function panelRoute(req,res,reply) {
         COALESCE((SELECT jsonb_agg(jsonb_build_object('id',d.id,'title',d.title,'kind',d.kind,'language',d.language) ORDER BY d.title)
           FROM model_documents md JOIN product_documents d ON d.id=md.document_id WHERE md.model_id=m.id),'[]') AS documents
         FROM product_models m WHERE ($1::uuid IS NULL OR m.id>$1) ORDER BY m.id LIMIT 51`,
-      units: `SELECT e.id,e.serial_number,e.is_demo,e.nfc_uid IS NOT NULL AS nfc_linked,
+      units: `SELECT e.id,e.serial_number,e.is_demo,e.nfc_uid,e.nfc_uid IS NOT NULL AS nfc_linked,
         v.reference,v.name AS variant_name,m.name AS model_name,m.code AS model_code,
         o.name AS owner_name,a.id AS assignment_id,a.kind AS assignment_kind,a.client_name,a.client_id
         FROM equipment e JOIN product_variants v ON v.id=e.variant_id JOIN product_models m ON m.id=v.model_id
@@ -89,8 +90,9 @@ export async function panelRoute(req,res,reply) {
       } finally { await file.close(); }
       return true;
     }
+    const nfc=url.pathname.match(/^\/api\/panel\/units\/([^/]+)\/nfc$/);
     const end=url.pathname.match(/^\/api\/panel\/assignments\/([^/]+)\/end$/);
-    if (req.method!=='POST' || (!['clients','models','variants','units','assignments'].includes(section) && !end)) {
+    if (req.method!=='POST' || (!['clients','models','variants','units','assignments'].includes(section) && !end && !nfc)) {
       reply(res,404,{error:'Ruta no disponible.'}); return true;
     }
     const input=await body(req);
@@ -112,7 +114,28 @@ export async function panelRoute(req,res,reply) {
     try {
       await client.query('BEGIN');
       let result, action=section;
-      if (section==='clients') {
+      if (nfc) {
+        let uid;
+        try { uid=normalizeNfcUid(input.uid); } catch(error) { throw new InputError(error.message); }
+        // Una vinculación inicial no reemplaza etiquetas ya asociadas. El bloqueo
+        // serializa dos operadores sobre la misma unidad; UNIQUE protege el chip.
+        const unit=(await client.query('SELECT id,is_demo,nfc_uid FROM equipment WHERE id=$1 FOR UPDATE',[id(nfc[1])])).rows[0];
+        if (!unit) throw new InputError('La unidad no existe.');
+        if (unit.is_demo) throw new InputError('Las unidades DEMO son solo de consulta en el panel.');
+        if (unit.nfc_uid && unit.nfc_uid!==uid) {
+          await client.query('ROLLBACK');
+          reply(res,409,{error:'La unidad ya tiene otra etiqueta vinculada. No se ha sustituido.'}); return true;
+        }
+        if (unit.nfc_uid===uid) {
+          await client.query('COMMIT'); reply(res,200,{id:unit.id,uid}); return true;
+        }
+        result=(await client.query('UPDATE equipment SET nfc_uid=$1 WHERE id=$2 RETURNING id',[uid,unit.id])).rows[0];
+        action='link-nfc';
+        // Se notifica al cliente actual después del COMMIT y de liberar el pool.
+        changedOrganization=(await client.query(`SELECT client_organization_id FROM equipment_assignments
+          WHERE equipment_id=$1 AND starts_at<=now() AND (ends_at IS NULL OR ends_at>now())
+          ORDER BY starts_at DESC LIMIT 1`,[unit.id])).rows[0]?.client_organization_id;
+      } else if (section==='clients') {
         result=(await client.query("INSERT INTO organizations(name) VALUES($1) RETURNING id",[text(input.name)])).rows[0];
         if (appUser) {
           // Empresa, cuenta y membresía se guardan juntas. No se escribe nunca en
@@ -175,7 +198,7 @@ export async function panelRoute(req,res,reply) {
     if(changedOrganization)await equipmentChanged(changedOrganization);
   } catch(error) {
     if (error instanceof InputError) reply(res,400,{error:error.message});
-    else if (error.code==='23505') reply(res,409,{error:url.pathname==='/api/panel/clients'?'Ya existe una cuenta con ese email. No se ha creado el cliente ni se ha modificado la cuenta existente.':'Ya existe ese código, referencia o número de serie.'});
+    else if (error.code==='23505') reply(res,409,{error:url.pathname.endsWith('/nfc')?'Esta etiqueta ya está vinculada a otra unidad.':url.pathname==='/api/panel/clients'?'Ya existe una cuenta con ese email. No se ha creado el cliente ni se ha modificado la cuenta existente.':'Ya existe ese código, referencia o número de serie.'});
     else if (error.code==='23503') reply(res,400,{error:'El modelo, referencia o cliente seleccionado ya no está disponible.'});
     else throw error;
   }

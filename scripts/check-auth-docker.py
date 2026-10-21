@@ -34,6 +34,8 @@ try:
     run(*panel_migration,env=admin);run(*panel_migration,env=admin)
     access_migration=migration[:-1]+['scripts/migrate-client-access.mjs']
     run(*access_migration,env=admin);run(*access_migration,env=admin)
+    nfc_migration=migration[:-1]+['scripts/migrate-nfc.mjs']
+    run(*nfc_migration,env=admin);run(*nfc_migration,env=admin)
     run('run','-d','--name',api,'--network-alias','api',*common,'-e','PGUSER=jaguar_app','-e','PGPASSWORD','--read-only','--cap-drop','ALL',image,env={'PGPASSWORD':app})
     for _ in range(30):
         try: run('exec',api,'node','-e',"fetch('http://localhost:3000/api/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"); break
@@ -201,7 +203,51 @@ try:
     assert.notEqual(account.password_hash,accountData.password);
     assert.equal((await pool.query("SELECT 1 FROM panel_operators p JOIN users u ON u.id=p.user_id WHERE u.email='nuevo@example.com'")).rowCount,0);
     assert.equal((await pool.query('SELECT count(*)::int AS n FROM panel_audit')).rows[0].n,15);
-    await pool.end(); console.log('OK: panel aislado, altas, SSE autenticado y por cliente, reconexión, auditoría y asignaciones');
+    // Vinculación física: normaliza ambos órdenes, no concede acceso por UID,
+    // serializa escrituras y conserva la etiqueta de una unidad ya vinculada.
+    const uid='E0040109219B3624', raw='24369B21090104E0';
+    const nfcPath='units/'+customerUnit.id+'/nfc';
+    assert.equal((await call(nfcPath,{uid:raw},customer)).status,403);
+    assert.equal((await fetch(base+'/panel/'+nfcPath,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({uid})})).status,401);
+    for(const invalid of ['',null,[],{},'0000000000000000','E00401','E0040109219B362400']){
+      assert.equal((await call(nfcPath,{uid:invalid})).status,400);
+    }
+    const demoUnit=(await (await call('units')).json()).items.find(e=>e.is_demo);
+    assert.equal((await call('units/'+demoUnit.id+'/nfc',{uid})).status,400);
+    const nfcWatch=await watch(customerSession.token);
+    const nfcRental=await create('assignments',{equipmentId:customerUnit.id,clientId:registered.id,kind:'rental'});
+    await nfcWatch.until('equipment-changed');
+    const auditBefore=(await pool.query('SELECT count(*)::int AS n FROM panel_audit')).rows[0].n;
+    assert.equal((await call(nfcPath,{uid:raw})).status,201);
+    await nfcWatch.until('equipment-changed',2);
+    assert.equal((await call(nfcPath,{uid:uid.toLowerCase()})).status,200);
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM panel_audit')).rows[0].n,auditBefore+1);
+    assert.equal((await call(nfcPath,{uid:'E0040109219B3625'})).status,409);
+    assert.equal((await call('units/'+unit.id+'/nfc',{uid})).status,409);
+    assert.equal((await fetch(base+'/equipment/by-nfc/'+uid)).status,401);
+    assert.equal((await customerGet('/equipment/by-nfc/invalid')).status,400);
+    const resolved=await customerGet('/equipment/by-nfc/'+raw);
+    assert.equal(resolved.status,200);assert.deepEqual(await resolved.json(),{id:customerUnit.id,uid});
+    assert.equal((await customerGet('/equipment/by-nfc/'+uid)).status,200);
+    assert.equal((await fetch(base+'/equipment/by-nfc/'+uid,{headers:{authorization:'Bearer '+customer}})).status,404);
+    const unknown=await customerGet('/equipment/by-nfc/E0040109219B3626');assert.equal(unknown.status,404);
+    const foreignNfc=await fetch(base+'/equipment/by-nfc/'+uid,{headers:{authorization:'Bearer '+customer}});
+    assert.deepEqual(await foreignNfc.json(),await unknown.json());
+    const linked=(await (await call('units')).json()).items.find(e=>e.id===customerUnit.id);
+    assert.equal(linked.nfc_uid,uid);assert.equal(linked.nfc_linked,true);
+    assert.equal((await (await customerGet('/equipment/'+customerUnit.id)).json()).equipment.nfcLinked,true);
+    // Un chip disputado por dos unidades solo puede tener un ganador.
+    const contested='E0040109219B3630';
+    const raced=await Promise.all([call('units/'+unit.id+'/nfc',{uid:contested}),call('units/'+second.id+'/nfc',{uid:contested})]);
+    assert.deepEqual(raced.map(r=>r.status).sort(),[201,409]);
+    const winner=await raced.find(r=>r.status===201).json();
+    const anotherRace=await Promise.all([call('units/'+winner.id+'/nfc',{uid:'E0040109219B3631'}),call('units/'+winner.id+'/nfc',{uid:'E0040109219B3632'})]);
+    assert.deepEqual(anotherRace.map(r=>r.status),[409,409]);
+    await create('assignments/'+nfcRental.id+'/end',{});
+    assert.equal((await customerGet('/equipment/by-nfc/'+raw)).status,404);
+    await nfcWatch.close();
+    await assert.rejects(pool.query("UPDATE equipment SET serial_number='not-allowed'"));
+    await pool.end(); console.log('OK: NFC normalizado, duplicados, concurrencia, auditoría, permisos, revocación y SSE; regresiones panel correctas');
     """
     print(run('exec',api,'node','--input-type=module','-e',panel_code).strip())
     # Importar dos veces no duplica referencias, unidades o documentos. Se conserva

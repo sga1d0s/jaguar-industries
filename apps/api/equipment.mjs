@@ -1,3 +1,4 @@
+import { normalizeNfcUid } from './nfc.mjs';
 import { pool } from './db.mjs';
 import { tokenHash } from './auth.mjs';
 import { fileURLToPath } from 'node:url';
@@ -46,6 +47,18 @@ export async function equipmentRoute(req, res, reply) {
   if (req.method !== 'GET') { reply(res,405,{error:'Método no permitido.'}); return true; }
   const user = await sessionUser(req);
   if (!user) { reply(res,401,{error:'La sesión ha caducado. Vuelve a entrar.'}); return true; }
+  const nfc=url.pathname.match(/^\/api\/equipment\/by-nfc\/([^/]+)$/);
+  if (nfc) {
+    let uid;
+    try { uid=normalizeNfcUid(decodeURIComponent(nfc[1])); }
+    catch { reply(res,400,{error:'UID ISO 15693 no válido.'}); return true; }
+    // Conocer el UID no concede acceso: se reutiliza el alcance de membresía
+    // y asignación vigente. Una etiqueta ajena e inexistente devuelven lo mismo.
+    const {rows}=await pool.query(`SELECT e.id ${scope} WHERE e.nfc_uid=$2`,[user.id,uid]);
+    if (!rows[0]) reply(res,404,{error:'Etiqueta sin equipo disponible para tu cuenta. Comprueba su vinculación y tu asignación.'});
+    else reply(res,200,{id:rows[0].id,uid});
+    return true;
+  }
   if (url.pathname === '/api/equipment/summary') {
     // Cuenta todas las unidades autorizadas, sin depender de la página que cargue el móvil.
     // No se inventan estados de servicio o alertas: aún no existen inspecciones operativas.
